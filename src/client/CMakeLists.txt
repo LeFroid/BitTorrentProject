@@ -1,0 +1,28 @@
+project(Client)
+
+INCLUDE_DIRECTORIES(
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${FRAMEWORK_SRC_DIR}
+    ${TORRENT_SRC_DIR}
+    ${SDL2_INCLUDE_DIRS}
+    ${SDL2_GFX_INCLUDE_DIRS}
+    ${SDL2_IMAGE_INCLUDE_DIRS}
+    ${SDL2_TTF_INCLUDE_DIRS}
+)
+
+file(GLOB_RECURSE client_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp *.h)
+
+add_executable(${client_EXEC}
+    ${client_SRC}
+)
+
+TARGET_LINK_LIBRARIES(${client_EXEC}
+    ${framework_LIB}
+    ${torrent_LIB}
+    ${SDL2_LIBRARY}
+    ${SDL2_GFX_LIBRARIES}
+    ${SDL2_IMAGE_LIBRARIES}
+    ${SDL2_TTF_LIBRARIES}
+)
+
+cotire(${client_EXEC})
