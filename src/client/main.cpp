@@ -18,6 +18,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    Engine::halt();
+
     return 0;
 }
 
