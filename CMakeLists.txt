@@ -26,6 +26,9 @@ find_package(SDL2_gfx REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 
+# OpenSSL or LibreSSL
+find_package(OpenSSL REQUIRED)
+
 # PCH support
 include(cotire)
 
