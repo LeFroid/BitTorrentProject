@@ -1,6 +1,8 @@
 project(TorrentProtocol)
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/bencoding
+  ${CMAKE_CURRENT_SOURCE_DIR}/http
   ${FRAMEWORK_SRC_DIR}
   ${SDL2_INCLUDE_DIRS}
   ${SDL2_GFX_INCLUDE_DIRS}
