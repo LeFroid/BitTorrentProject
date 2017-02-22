@@ -42,5 +42,36 @@ namespace bencoding
 
         /// Implements the BenObject's accept method
         virtual void accept(BenObjectVisitor &visitor) override;
+
+    /// Wrapper methods and type definitions for the vector
+    public:
+        typedef std::vector<BenObjectBase*>::iterator iterator;
+        typedef std::vector<BenObjectBase*>::const_iterator const_iterator;
+        typedef std::vector<BenObjectBase*>::size_type size_type;
+
+        /// Returns an iterator pointing to the first element in the benlist
+        iterator begin();
+
+        /// Returns a const_iterator pointing to the first element in the benlist
+        const_iterator cbegin();
+
+        /// Returns a const_iterator pointing just past the end of the benlist
+        const_iterator cend();
+
+        /// Returns an iterator pointing just past end of the benlist
+        iterator end();
+
+        /// Returns true if the list is empty, false if else
+        bool empty() const;
+
+        /// Adds a new element at the end of the list
+        void push_back(BenObjectBase* const &val);
+
+        /// Returns the number of elements in the list
+        size_type size() const;
+
+        /// Bracket operator to access a pointer to the value at the given position.
+        /// pos must be within the range [ 0, size() )
+        BenObjectBase *&operator [](size_type pos);
     };
 }

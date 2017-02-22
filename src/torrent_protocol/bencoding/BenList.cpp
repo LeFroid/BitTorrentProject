@@ -37,4 +37,44 @@ namespace bencoding
     {
         visitor.visit(*this);
     }
+
+    BenList::iterator BenList::begin()
+    {
+        return m_value.begin();
+    }
+
+    BenList::const_iterator BenList::cbegin()
+    {
+        return m_value.cbegin();
+    }
+
+    BenList::iterator BenList::end()
+    {
+        return m_value.end();
+    }
+
+    BenList::const_iterator BenList::cend()
+    {
+        return m_value.cend();
+    }
+
+    bool BenList::empty() const
+    {
+        return m_value.empty();
+    }
+
+    void BenList::push_back(BenObjectBase* const &val)
+    {
+        m_value.push_back(val);
+    }
+
+    BenList::size_type BenList::size() const
+    {
+        return m_value.size();
+    }
+
+    BenObjectBase *&BenList::operator [](BenList::size_type pos)
+    {
+        return m_value[pos];
+    }
 }
