@@ -43,7 +43,30 @@ namespace bencoding
         /// Implements the BenObject's accept method
         virtual void accept(BenObjectVisitor &visitor) override;
 
+    /// Wrapper methods and type definitions for the map
     public:
+        typedef std::unordered_map<std::string, BenObjectBase*>::iterator iterator;
+        typedef std::unordered_map<std::string, BenObjectBase*>::const_iterator const_iterator;
+        typedef std::unordered_map<std::string, BenObjectBase*>::size_type size_type;
+
+        /// Returns an iterator pointing to the first element in the BenDictionary
+        iterator begin();
+
+        /// Returns a const_iterator pointing to the first element in the BenDictionary
+        const_iterator cbegin();
+
+        /// Returns a const_iterator pointing just past the end of the BenDictionary
+        const_iterator cend();
+
+        /// Returns an iterator pointing just past end of the BenDictionary
+        iterator end();
+
+        /// Returns true if the dictionary is empty, false if else
+        bool empty() const;
+
+        /// Returns the number of elements in the list
+        size_type size() const;
+
         /// Bracket operator to access a pointer to the value associated with the given key, or
         /// it will return a reference to the newly inserted item if the key had not been found
         /// in the map

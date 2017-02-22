@@ -23,60 +23,54 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <utility>
+#include "Encoder.h"
+
 #include "BenDictionary.h"
-#include "BenObjectVisitor.h"
+#include "BenInt.h"
+#include "BenList.h"
+#include "BenString.h"
 
 namespace bencoding
 {
-    BenDictionary::BenDictionary() :
-        BenObject()
+    void Encoder::clear()
     {
+        m_data.clear();
     }
 
-    void BenDictionary::accept(BenObjectVisitor &visitor)
+    const std::string &Encoder::getData() const
     {
-        visitor.visit(*this);
+        return m_data;
     }
 
-    BenDictionary::iterator BenDictionary::begin()
+    void Encoder::visit(BenDictionary &benObject)
     {
-        return m_value.begin();
-    }
-
-    BenDictionary::const_iterator BenDictionary::cbegin()
-    {
-        return m_value.cbegin();
-    }
-
-    BenDictionary::const_iterator BenDictionary::cend()
-    {
-        return m_value.cend();
-    }
-
-    BenDictionary::iterator BenDictionary::end()
-    {
-        return m_value.end();
-    }
-
-    bool BenDictionary::empty() const
-    {
-        return m_value.empty();
-    }
-
-    BenDictionary::size_type BenDictionary::size() const
-    {
-        return m_value.size();
-    }
-
-    BenObjectBase *&BenDictionary::operator [](std::string key)
-    {
-        auto it = m_value.find(key);
-        if (it == m_value.end())
+        BenString key;
+        m_data.push_back('d');
+        for (auto it = benObject.begin(); it != benObject.end(); ++it)
         {
-            auto pair = m_value.insert(std::make_pair<std::string, BenObjectBase*>(std::move(key), nullptr));
-            return pair.first->second;
+            key.setValue(it->first);
+            visit(key);
+            it->second->accept(*this);
         }
-        return it->second;
+        m_data.push_back('e');
+    }
+
+    void Encoder::visit(BenInt &benObject)
+    {
+        m_data += 'i' + std::to_string(benObject.getValue()) + 'e';
+    }
+
+    void Encoder::visit(BenList &benObject)
+    {
+        m_data.push_back('l');
+        for (auto it = benObject.begin(); it != benObject.end(); ++it)
+            (*it)->accept(*this);
+        m_data.push_back('e');
+    }
+
+    void Encoder::visit(BenString &benObject)
+    {
+        const std::string strVal = benObject.getValue();
+        m_data += std::to_string(strVal.size()) + ':' + strVal;
     }
 }

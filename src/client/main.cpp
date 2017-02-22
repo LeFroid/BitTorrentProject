@@ -9,6 +9,7 @@
 #include "bencoding/BenString.h"
 #include "bencoding/BenInt.h"
 #include "bencoding/BenList.h"
+#include "bencoding/Encoder.h"
 
 using namespace bencoding;
 
@@ -48,6 +49,10 @@ int main(int argc, char **argv)
     {
         LOG_INFO("client", "dict[\"list_key\"]: list const_iterator pointing to: ", static_cast<BenString* const>(*it)->getValue());
     }
+
+    Encoder encoder;
+    dict.accept(encoder);
+    LOG_INFO("client", "encoded dictionary represented as: ", encoder.getData());
 
     Engine::halt();
 

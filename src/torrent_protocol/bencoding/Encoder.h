@@ -25,51 +25,43 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <string>
+#include "BenObjectVisitor.h"
+
 namespace bencoding
 {
-    class BenObjectVisitor;
-
     /**
-     * @brief The BenObjectBase class is used as a base class of BenObject so
-     *        the BenList and BenDictionary classes can store pointers to
-     *        BenObject-derived classes.
+     * @class Encoder
+     * @brief Implements the BenObjectVisitor, encoding any BenObject-derived
+     *        type into its appropriate format
      */
-    class BenObjectBase
-    {
-    public:
-        BenObjectBase() = default;
-
-        /// Accepts an object of any class derived from the \ref BenObjectVisitor and
-        /// must be implemented in all derived classes
-        virtual void accept(BenObjectVisitor &visitor) = 0;
-    };
-
-    /**
-     * @class BenObject
-     * @brief Base class of all bencoded data types
-     */
-    template <class T>
-    class BenObject : public BenObjectBase
+    class Encoder : public BenObjectVisitor
     {
     public:
         /// Default constructor
-        BenObject() : BenObjectBase(), m_value() { }
+        Encoder() = default;
 
-        /// Instantiates the BenObject with the given value
-        explicit BenObject(T value) : m_value(value) { }
+        /// Clears any previously encoded data from the buffer
+        void clear();
 
-        /// Returns the value associated with the BenObject
-        const T &getValue() const { return m_value; }
-
-        /// Sets the value associated with the BenObject
-        void setValue(T value) { m_value = value; }
+        /// Returns the data that has been encoded in string format
+        const std::string &getData() const;
 
     public:
-        /// Implemented in BenObject-derived classes
-        virtual void accept(BenObjectVisitor & /*visitor*/) { }
+        /// Visit a BenDictionary object
+        virtual void visit(BenDictionary &benObject);
 
-    protected:
-        /// The value associated with the BenObject-derived class
-        T m_value;
+        /// Visit a BenInt object
+        virtual void visit(BenInt &benObject);
+
+        /// Visit a BenList object
+        virtual void visit(BenList &benObject);
+
+        /// Visit a BenString object
+        virtual void visit(BenString &benObject);
+
+    private:
+        /// Encoded data in string form
+        std::string m_data;
     };
 }
