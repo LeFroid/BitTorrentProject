@@ -29,6 +29,9 @@ find_package(SDL2_ttf REQUIRED)
 # OpenSSL or LibreSSL
 find_package(OpenSSL REQUIRED)
 
+# Boost
+find_package(Boost 1.58.0 COMPONENTS system REQUIRED)
+
 # PCH support
 include(cotire)
 
