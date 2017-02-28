@@ -102,6 +102,16 @@ namespace network
         return m_writePos - m_readPos;
     }
 
+    const MutableBuffer::size_type MutableBuffer::getSizeNotWritten() const
+    {
+        return m_data.size() - m_writePos;
+    }
+
+    const MutableBuffer::size_type MutableBuffer::getSize() const
+    {
+        return m_data.size();
+    }
+
     const MutableBuffer::size_type &MutableBuffer::getReadPosition() const
     {
         return m_readPos;
@@ -161,6 +171,11 @@ namespace network
         // Adjust read & write positions
         m_writePos -= m_readPos;
         m_readPos = 0;
+    }
+
+    void MutableBuffer::resize(size_type length)
+    {
+        m_data.resize(length);
     }
 
     void MutableBuffer::write(const char *data, size_t length)

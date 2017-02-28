@@ -72,6 +72,12 @@ namespace network
         /// Returns the number of bytes that have not been marked as read from
         const size_type getSizeUnread() const;
 
+        /// Returns the number of bytes that have not been writen from the buffer
+        const size_type getSizeNotWritten() const;
+
+        /// Returns the size of the container
+        const size_type getSize() const;
+
         /// Returns the current position for reading from the buffer
         const size_type &getReadPosition() const;
 
@@ -104,6 +110,9 @@ namespace network
         /// Discards data that is no longer needed to free space in the buffer (should be called
         /// whenever data is being written into the buffer from the network)
         void discardInactiveData();
+
+        /// Resizes the buffer to the given length
+        void resize(size_type length);
 
     // Methods to write data into the buffer
     public:
