@@ -39,8 +39,11 @@ namespace network
         /// Constructs a Client object, given a reference to an io_service
         explicit ClientBase(boost::asio::io_service &ioService);
 
-        /// Attempts to connect to the given endpoint
+        /// Attempts to connect to the given tcp endpoint
         void connect(boost::asio::ip::tcp::endpoint &endpoint);
+
+        /// Attempts to connect to the given udp endpoint
+        //void connect(boost::asio::ip::udp::endpoint &endpoint);
 
         /// Returns true if the client has formed an active connection, false if else
         bool isConnected() const;
@@ -48,6 +51,10 @@ namespace network
     public:
         /// Called after a successful read operation
         virtual void onRead() { }
+
+    protected:
+        /// Callback for client connect event
+        void handleConnect(const boost::system::error_code& ec);
 
     protected:
         /// True if client has formed a connection, false if else
