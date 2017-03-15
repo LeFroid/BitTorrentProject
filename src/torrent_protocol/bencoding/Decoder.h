@@ -23,63 +23,43 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "BenList.h"
-#include "BenObjectVisitor.h"
+#pragma once
+
+#include <cstdint>
+#include <memory>
+#include <string>
+#include "BenObject.h"
 
 namespace bencoding
 {
-    BenList::BenList() :
-        BenObject()
-    {
-    }
+    class BenDictionary;
+    class BenInt;
+    class BenList;
+    class BenString;
 
-    void BenList::accept(BenObjectVisitor &visitor)
+    /**
+     * @class Decoder
+     * @brief Parses a string in bencoding format into a BenObjectBase-derived type.
+     */
+    class Decoder
     {
-        visitor.visit(*this);
-    }
+    public:
+        /// Default constructor
+        Decoder() = default;
 
-    BenList::iterator BenList::begin()
-    {
-        return m_value.begin();
-    }
+        /// Decodes the given string, returning a shared_ptr to the appropriate data type
+        std::shared_ptr<BenObjectBase> decode(const std::string &encoded, bool recursive = false);
 
-    BenList::const_iterator BenList::cbegin()
-    {
-        return m_value.cbegin();
-    }
+    private:
+        /// Returns the integer associated with the bencoded string
+        int64_t getInt(const std::string &encoded);
 
-    BenList::iterator BenList::end()
-    {
-        return m_value.end();
-    }
+        /// Returns the bencoded string in string format
+        std::string getString(const std::string &encoded);
 
-    BenList::const_iterator BenList::cend()
-    {
-        return m_value.cend();
-    }
-
-    bool BenList::empty() const
-    {
-        return m_value.empty();
-    }
-
-    void BenList::push_back(std::shared_ptr<BenObjectBase> const &val)
-    {
-        m_value.push_back(val);
-    }
-
-    void BenList::push_back(std::shared_ptr<BenObjectBase> &&val)
-    {
-        m_value.push_back(std::move(val));
-    }
-
-    BenList::size_type BenList::size() const
-    {
-        return m_value.size();
-    }
-
-    std::shared_ptr<BenObjectBase> &BenList::operator [](BenList::size_type pos)
-    {
-        return m_value[pos];
-    }
+    private:
+        /// Current index in the string being decoded
+        std::size_t m_index;
+    };
 }
+

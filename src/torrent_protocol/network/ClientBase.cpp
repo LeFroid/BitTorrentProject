@@ -60,6 +60,6 @@ namespace network
         }
 
         m_isConnected.store(true);
-        //read();
+        onConnect();
     }
 }

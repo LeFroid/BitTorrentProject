@@ -9,6 +9,7 @@
 #include "bencoding/BenString.h"
 #include "bencoding/BenInt.h"
 #include "bencoding/BenList.h"
+#include "bencoding/Decoder.h"
 #include "bencoding/Encoder.h"
 
 using namespace bencoding;
@@ -27,32 +28,28 @@ int main(int argc, char **argv)
     }
 
     // bencoding test
-    BenString str("Hello, World!");
-    BenInt intVal(42);
+    Decoder decoder;
+    std::string bencodedStr = "d4:spami42ee";
+    auto benPtr = decoder.decode(bencodedStr);
+    auto dictPtr = std::static_pointer_cast<BenDictionary>(benPtr);
+    LOG_INFO("client", "size of dictionary = ", dictPtr->size());
+    LOG_INFO("client", "value for key \"spam\" in dictionary = ", static_cast<BenInt*>(((*dictPtr)["spam"]).get())->getValue());
+    
+    std::shared_ptr<BenObjectBase> str(std::make_shared<BenString>("Hello, World!"));
+    std::shared_ptr<BenObjectBase> intVal(std::make_shared<BenInt>(42));
 
-    BenString listStrA("String A");
-    BenString listStrB("String B");
-    BenList list;
-    list.push_back(&listStrA);
-    list.push_back(&listStrB);
+    auto list = std::make_shared<BenList>();
+    list->push_back(str);
+    list->push_back(intVal);
 
     BenDictionary dict;
-    dict["str_key"] = &str;
-    dict["int_key"] = &intVal;
-    dict["list_key"] = &list;
-
-    LOG_INFO("client", "dict[\"str_key\"] = ", static_cast<BenString*>(dict["str_key"])->getValue());
-    LOG_INFO("client", "dict[\"int_key\"] = ", static_cast<BenInt*>(dict["int_key"])->getValue());
-
-    BenList *listPtr = static_cast<BenList*>(dict["list_key"]);
-    for (auto it = listPtr->cbegin(); it != listPtr->cend(); ++it)
-    {
-        LOG_INFO("client", "dict[\"list_key\"]: list const_iterator pointing to: ", static_cast<BenString* const>(*it)->getValue());
-    }
+    dict["str_key"] = intVal;
+    dict["list_key"] = list; 
 
     Encoder encoder;
     dict.accept(encoder);
     LOG_INFO("client", "encoded dictionary represented as: ", encoder.getData());
+    
 
     Engine::halt();
 

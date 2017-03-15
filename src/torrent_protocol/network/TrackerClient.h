@@ -23,63 +23,27 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "BenList.h"
-#include "BenObjectVisitor.h"
+#pragma once
 
-namespace bencoding
+#include "ClientBase.h"
+
+namespace network
 {
-    BenList::BenList() :
-        BenObject()
+    /**
+     * @class TrackerClient
+     * @brief Handles communications with a tracker service
+     */
+    class TrackerClient : public ClientBase
     {
-    }
+    public:
+        /// TrackerClient constructor
+        explicit TrackerClient(boost::asio::io_service &ioService);
 
-    void BenList::accept(BenObjectVisitor &visitor)
-    {
-        visitor.visit(*this);
-    }
+    protected:
+        /// Called after forming initial connection with a tracker
+        virtual void onConnect() override;
 
-    BenList::iterator BenList::begin()
-    {
-        return m_value.begin();
-    }
-
-    BenList::const_iterator BenList::cbegin()
-    {
-        return m_value.cbegin();
-    }
-
-    BenList::iterator BenList::end()
-    {
-        return m_value.end();
-    }
-
-    BenList::const_iterator BenList::cend()
-    {
-        return m_value.cend();
-    }
-
-    bool BenList::empty() const
-    {
-        return m_value.empty();
-    }
-
-    void BenList::push_back(std::shared_ptr<BenObjectBase> const &val)
-    {
-        m_value.push_back(val);
-    }
-
-    void BenList::push_back(std::shared_ptr<BenObjectBase> &&val)
-    {
-        m_value.push_back(std::move(val));
-    }
-
-    BenList::size_type BenList::size() const
-    {
-        return m_value.size();
-    }
-
-    std::shared_ptr<BenObjectBase> &BenList::operator [](BenList::size_type pos)
-    {
-        return m_value[pos];
-    }
+        /// Handles post-recv operations
+        virtual void onRead() override;
+    };
 }

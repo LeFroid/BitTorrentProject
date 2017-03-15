@@ -25,6 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <memory>
 #include <unordered_map>
 #include "BenObject.h"
 
@@ -34,7 +35,7 @@ namespace bencoding
      * @class BenDictionary
      * @brief Object used to store key-value pairs of strings to objects of any bencoded type
      */
-    class BenDictionary : public BenObject< std::unordered_map<std::string, BenObjectBase*> >
+    class BenDictionary : public BenObject< std::unordered_map< std::string, std::shared_ptr<BenObjectBase> > >
     {
     public:
         /// Default constructor
@@ -45,9 +46,10 @@ namespace bencoding
 
     /// Wrapper methods and type definitions for the map
     public:
-        typedef std::unordered_map<std::string, BenObjectBase*>::iterator iterator;
-        typedef std::unordered_map<std::string, BenObjectBase*>::const_iterator const_iterator;
-        typedef std::unordered_map<std::string, BenObjectBase*>::size_type size_type;
+        typedef std::unordered_map< std::string, std::shared_ptr<BenObjectBase> > DataType;
+        typedef DataType::iterator iterator;
+        typedef DataType::const_iterator const_iterator;
+        typedef DataType::size_type size_type;
 
         /// Returns an iterator pointing to the first element in the BenDictionary
         iterator begin();
@@ -67,9 +69,18 @@ namespace bencoding
         /// Returns the number of elements in the list
         size_type size() const;
 
+        /**
+         * @brief Inserts the key-value pair into the map 
+         * @return A pair whose first element is an iterator pointing to either the
+         *         newly inserted element, or the element whose key is equivalent, and
+         *         a boolean value indicating whether or not the element was successfully
+         *         inserted.
+         */
+        std::pair<iterator, bool> insert(const std::pair< const std::string, std::shared_ptr<BenObjectBase> > &val);
+
         /// Bracket operator to access a pointer to the value associated with the given key, or
         /// it will return a reference to the newly inserted item if the key had not been found
         /// in the map
-        BenObjectBase *&operator [](std::string key);
+        std::shared_ptr<BenObjectBase> &operator [](std::string key);
     };
 }

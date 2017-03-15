@@ -55,7 +55,7 @@ namespace network
         /// Moves the buffer into the queue to be sent out
         void send(MutableBuffer &&buffer);
 
-    public:
+    protected:
         /// Called after a successful read operation
         virtual void onRead() { }
 

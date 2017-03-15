@@ -25,6 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <memory>
 #include <vector>
 #include "BenObject.h"
 
@@ -34,7 +35,7 @@ namespace bencoding
     * @class BenInt
     * @brief Object used to store a variable amount of any other bencoded data
     */
-    class BenList : public BenObject< std::vector<BenObjectBase*> >
+    class BenList : public BenObject< std::vector< std::shared_ptr<BenObjectBase> > >
     {
     public:
         /// BenList default constructor
@@ -45,9 +46,10 @@ namespace bencoding
 
     /// Wrapper methods and type definitions for the vector
     public:
-        typedef std::vector<BenObjectBase*>::iterator iterator;
-        typedef std::vector<BenObjectBase*>::const_iterator const_iterator;
-        typedef std::vector<BenObjectBase*>::size_type size_type;
+        typedef std::vector< std::shared_ptr<BenObjectBase> > DataType;
+        typedef DataType::iterator iterator;
+        typedef DataType::const_iterator const_iterator;
+        typedef DataType::size_type size_type;
 
         /// Returns an iterator pointing to the first element in the benlist
         iterator begin();
@@ -65,13 +67,16 @@ namespace bencoding
         bool empty() const;
 
         /// Adds a new element at the end of the list
-        void push_back(BenObjectBase* const &val);
+        void push_back(std::shared_ptr<BenObjectBase> const &val);
+
+        /// Moves an element to the end of the list
+        void push_back(std::shared_ptr<BenObjectBase> &&val);
 
         /// Returns the number of elements in the list
         size_type size() const;
 
         /// Bracket operator to access a pointer to the value at the given position.
         /// pos must be within the range [ 0, size() )
-        BenObjectBase *&operator [](size_type pos);
+        std::shared_ptr<BenObjectBase> &operator [](size_type pos);
     };
 }

@@ -69,12 +69,17 @@ namespace bencoding
         return m_value.size();
     }
 
-    BenObjectBase *&BenDictionary::operator [](std::string key)
+    std::pair<BenDictionary::iterator, bool> BenDictionary::insert(const std::pair< const std::string, std::shared_ptr<BenObjectBase> > &val)
+    {
+        return m_value.insert(val);
+    }
+
+    std::shared_ptr<BenObjectBase> &BenDictionary::operator [](std::string key)
     {
         auto it = m_value.find(key);
         if (it == m_value.end())
         {
-            auto pair = m_value.insert(std::make_pair<std::string, BenObjectBase*>(std::move(key), nullptr));
+            auto pair = m_value.insert(std::make_pair< std::string, std::shared_ptr<BenObjectBase> >(std::move(key), std::shared_ptr<BenObjectBase>()));
             return pair.first->second;
         }
         return it->second;

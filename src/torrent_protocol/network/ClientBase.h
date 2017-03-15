@@ -48,11 +48,13 @@ namespace network
         /// Returns true if the client has formed an active connection, false if else
         bool isConnected() const;
 
-    public:
-        /// Called after a successful read operation
-        virtual void onRead() { }
-
     protected:
+        /// Called during handleConnect(..) if connection has been made successfully
+        virtual void onConnect() { }
+
+        /// Called after a successful read operation
+        virtual void onRead() override { }
+
         /// Callback for client connect event
         void handleConnect(const boost::system::error_code& ec);
 
