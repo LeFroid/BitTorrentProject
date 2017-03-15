@@ -23,8 +23,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "LogHelper.h"
-
 #include <cstdlib>
 #include "Decoder.h"
 
@@ -88,6 +86,11 @@ namespace bencoding
         }
 
         return retVal;
+    }
+
+    const std::size_t &Decoder::getIndex() const
+    {
+        return m_index;
     }
     
     int64_t Decoder::getInt(const std::string &encoded)

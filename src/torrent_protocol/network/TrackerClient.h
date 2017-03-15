@@ -25,7 +25,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <memory>
 #include "ClientBase.h"
+
+class TorrentFile;
 
 namespace network
 {
@@ -39,11 +42,19 @@ namespace network
         /// TrackerClient constructor
         explicit TrackerClient(boost::asio::io_service &ioService);
 
+        /// Sets the tracker client's shared_ptr to the Torrent File object
+        /// which will be used to request peer information from
+        void setTorrentFile(std::shared_ptr<TorrentFile> file);
+
     protected:
         /// Called after forming initial connection with a tracker
         virtual void onConnect() override;
 
         /// Handles post-recv operations
         virtual void onRead() override;
+
+    private:
+        /// Shared pointer to the torrent file being used
+        std::shared_ptr<TorrentFile> m_torrentFile;
     };
 }

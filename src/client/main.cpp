@@ -49,7 +49,6 @@ int main(int argc, char **argv)
     Encoder encoder;
     dict.accept(encoder);
     LOG_INFO("client", "encoded dictionary represented as: ", encoder.getData());
-    
 
     Engine::halt();
 

@@ -25,15 +25,24 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "TrackerClient.h"
 
+#include "TorrentFile.h"
+
 namespace network
 {
     TrackerClient::TrackerClient(boost::asio::io_service &ioService) :
-        ClientBase(ioService)
+        ClientBase(ioService),
+        m_torrentFile()
     {
+    }
+
+    void TrackerClient::setTorrentFile(std::shared_ptr<TorrentFile> file)
+    {
+        m_torrentFile = file;
     }
 
     void TrackerClient::onConnect()
     {
+        // Send GET request if m_torrentFile is valid
     }
 
     void TrackerClient::onRead()

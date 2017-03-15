@@ -36,7 +36,6 @@ namespace bencoding
     class BenInt;
     class BenList;
     class BenString;
-
     /**
      * @class Decoder
      * @brief Parses a string in bencoding format into a BenObjectBase-derived type.
@@ -49,6 +48,9 @@ namespace bencoding
 
         /// Decodes the given string, returning a shared_ptr to the appropriate data type
         std::shared_ptr<BenObjectBase> decode(const std::string &encoded, bool recursive = false);
+
+        /// Returns the final index value from the last decode operation (used for info hash) 
+        const std::size_t &getIndex() const;
 
     private:
         /// Returns the integer associated with the bencoded string
