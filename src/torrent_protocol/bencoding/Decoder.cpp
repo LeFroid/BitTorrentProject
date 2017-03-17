@@ -31,6 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "BenList.h"
 #include "BenString.h"
 
+#include "LogHelper.h"
+
 namespace bencoding
 {
     std::shared_ptr<BenObjectBase> Decoder::decode(const std::string &encoded, bool recursive)
@@ -63,6 +65,7 @@ namespace bencoding
                 {
                     listPtr->push_back(decode(encoded, true));
                 }
+                ++m_index;
                 break;
             }
             // BenDictionary
@@ -75,6 +78,7 @@ namespace bencoding
                 {
                     dictPtr->insert(std::make_pair(getString(encoded), decode(encoded, true)));
                 }
+                ++m_index;
                 break;
             }
             // Default case is string
