@@ -43,9 +43,18 @@ namespace http
             // If '/' was found in the original string, modify addrPosEnd to represent the length of the host substring
             if (addrPosEnd != std::string::npos)
             {
-                // Also check for potential request parameters, add to the hash map if any exist in url string
+                // Also check for page name, potential request parameters, add requests to the hash map if any exist in url string
                 if (url.size() > addrPosEnd + 2)
-                    extractParameters(url.substr(addrPosEnd + 2));
+                {
+                    auto paramPos = url.find_first_of('?');
+                    if (paramPos != std::string::npos && paramPos > addrPosEnd)
+                    {
+                        m_pageName = url.substr(addrPosEnd + 1, paramPos - addrPosEnd - 1);
+                        extractParameters(url.substr(paramPos + 1));
+                    }
+                    else
+                        m_pageName = url.substr(addrPosEnd + 1);
+                }
 
                 addrPosEnd -= (addrPosBegin + 3);
             }
@@ -60,11 +69,21 @@ namespace http
         return m_host;
     }
 
-    std::string URL::getRequest()
+    const std::string &URL::getPageName() const
+    {
+        return m_pageName;
+    }
+
+    std::string URL::getRequest() const
     {
         // Build request string
         std::ostringstream oss;
-        oss << "/?";
+
+        oss << '/';
+        if (!m_pageName.empty())
+            oss << m_pageName;
+        if (!m_parameters.empty())
+            oss << '?';
         for (const auto &it : m_parameters)
         {
            oss << getEncodedFor(it.first)
@@ -79,7 +98,12 @@ namespace http
         return request;
     }
 
-    std::string URL::getEncodedFor(const std::string &str)
+    void URL::setPageName(std::string name)
+    {
+        m_pageName = name;
+    }
+
+    std::string URL::getEncodedFor(const std::string &str) const
     {
         std::ostringstream oss;
         oss << std::hex;

@@ -45,8 +45,14 @@ namespace http
         /// Returns the host associated with the URL
         const std::string &getHost() const;
 
+        /// Returns the page name associated with the URL
+        const std::string &getPageName() const;
+
         /// Generates and returns a string of requests which can be send to the host through the HTTP protocol
-        std::string getRequest();
+        std::string getRequest() const;
+
+        /// Sets the page name to the given value
+        void setPageName(std::string name);
 
         /// Associates the key parameter to the given value
         template <typename T>
@@ -57,7 +63,7 @@ namespace http
 
     private:
         /// Converts the string, wherever applicable, into percent encoded URI format
-        std::string getEncodedFor(const std::string &str);
+        std::string getEncodedFor(const std::string &str) const;
 
         /// Extracts any request parameters found in the url given during object instantiation
         void extractParameters(std::string paramString);
@@ -65,6 +71,9 @@ namespace http
     private:
         /// Host location. Ex: www.sitename.com
         std::string m_host;
+
+        /// Page name. Appears after host, before request parameters
+        std::string m_pageName;
 
         /// Map of request parameters, which can be formatted as "/?key1=value1&keyN=valueN" when sending a request
         std::unordered_map<std::string, std::string> m_parameters;
