@@ -70,6 +70,20 @@ namespace bencoding
         size_type size() const;
 
         /**
+         * Finds an element with key equivalent to key
+         * @return Iterator to element with associated key, or
+         *         a past-the-end iterator if the key was not found.
+         */
+        iterator find(const std::string &key);
+
+        /**
+         * Finds an element with key equivalent to key
+         * @return Iterator to element with associated key, or
+         *         a past-the-end iterator if the key was not found.
+         */
+        const_iterator find(const std::string &key) const;
+
+        /**
          * @brief Inserts the key-value pair into the map 
          * @return A pair whose first element is an iterator pointing to either the
          *         newly inserted element, or the element whose key is equivalent, and

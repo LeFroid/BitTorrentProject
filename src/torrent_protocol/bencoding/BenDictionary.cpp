@@ -69,6 +69,16 @@ namespace bencoding
         return m_value.size();
     }
 
+    BenDictionary::iterator BenDictionary::find(const std::string &key)
+    {
+        return m_value.find(key);
+    }
+
+    BenDictionary::const_iterator BenDictionary::find(const std::string &key) const
+    {
+        return m_value.find(key);
+    }
+
     std::pair<BenDictionary::iterator, bool> BenDictionary::insert(const std::pair< const std::string, std::shared_ptr<BenObjectBase> > &val)
     {
         return m_value.insert(val);
