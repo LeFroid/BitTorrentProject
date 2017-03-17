@@ -36,24 +36,24 @@ namespace network
     class ClientBase : public Socket
     {
     public:
-        /// Constructs a Client object, given a reference to an io_service
-        explicit ClientBase(boost::asio::io_service &ioService);
+        /// Constructs a Client object, given a reference to an io_service and the mode
+        explicit ClientBase(boost::asio::io_service &ioService, Socket::Mode mode);
 
         /// Attempts to connect to the given tcp endpoint
         void connect(boost::asio::ip::tcp::endpoint &endpoint);
 
         /// Attempts to connect to the given udp endpoint
-        //void connect(boost::asio::ip::udp::endpoint &endpoint);
+        void connect(boost::asio::ip::udp::endpoint &endpoint);
 
         /// Returns true if the client has formed an active connection, false if else
         bool isConnected() const;
 
     protected:
         /// Called during handleConnect(..) if connection has been made successfully
-        virtual void onConnect() { }
+        virtual void onConnect() = 0;
 
         /// Called after a successful read operation
-        virtual void onRead() override { }
+        virtual void onRead() = 0;
 
         /// Callback for client connect event
         void handleConnect(const boost::system::error_code& ec);

@@ -34,6 +34,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "SHA1Hash.h"
 
+#include "URL.h"
+
 /**
  * @class TorrentFile
  * @brief Represents a .torrent file stored on the local machine, used to
@@ -45,18 +47,35 @@ public:
     /// Constructs the torrent file object with the path to a torrent file on the local machine
     explicit TorrentFile(std::string path);
 
+    /// Returns the announce URL
+    http::URL getAnnounceURL();
+
+    /// Returns a pointer to the info dictionary associated with the torrent file
+    bencoding::BenDictionary *getInfoDictionary();
+
     /// Returns the digest of the value of the info key from the torrent file
     uint8_t *getInfoHash();
+
+    /// Returns the total length in bytes of the file(s) associated with the torrent
+    const uint64_t &getFileSize() const;
 
 private:
     /// Parses the torrent file with the given path, storing the decoded data into the meta info dictionary
     void parseFile(const std::string &path);
 
+    /// Calculates and sets the total byte size of the file(s) associated with the torrent
+    void calculateFileSize();
+
 private:
+    /// Total number of bytes that have been downloaded
+    uint64_t m_bytesDownloaded;
+
+    /// Total size of the file(s) associated with the torrent, in bytes
+    uint64_t m_size;
+
     /// Stores the digest of the value of the info key from the torrent file
     SHA1Hash m_infoHash;
 
     /// Metainfo contained in the torrent file
     std::shared_ptr<bencoding::BenDictionary> m_metaInfo;
 };
-

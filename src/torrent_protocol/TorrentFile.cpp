@@ -30,16 +30,49 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Decoder.h"
 #include "TorrentFile.h"
 
+using namespace bencoding;
+
 TorrentFile::TorrentFile(std::string path) :
+    m_bytesDownloaded(0),
+    m_size(0),
     m_infoHash(),
     m_metaInfo()
 {
     parseFile(path);
 }
 
+http::URL TorrentFile::getAnnounceURL()
+{
+    auto it = m_metaInfo->find("announce");
+    if (it == m_metaInfo->end())
+    {
+        LOG_ERROR("torrent_protocol.TorrentFile", "Unable to get announce URL from metainfo!");
+        return http::URL("");
+    }
+
+    return http::URL(static_cast<BenString*>(it->second.get())->getValue());
+}
+
+BenDictionary *TorrentFile::getInfoDictionary()
+{
+    BenDictionary::iterator infoItr = m_metaInfo->find("info");
+    if (infoItr == m_metaInfo->end())
+    {
+        LOG_ERROR("torrent_protocol.TorrentFile", "Unable to get info dictionary");
+        return nullptr;
+    }
+
+    return static_cast<BenDictionary*>(infoItr->second.get());
+}
+
 uint8_t *TorrentFile::getInfoHash()
 {
     return m_infoHash.getDigest();
+}
+
+const uint64_t &TorrentFile::getFileSize() const
+{
+    return m_size;
 }
 
 void TorrentFile::parseFile(const std::string &path)
@@ -62,8 +95,8 @@ void TorrentFile::parseFile(const std::string &path)
             std::istreambuf_iterator<char>());
 
     // Decode dictionary and set it as metainfo
-    bencoding::Decoder decoder;
-    m_metaInfo = std::static_pointer_cast<bencoding::BenDictionary>(decoder.decode(encodedData));
+    Decoder decoder;
+    m_metaInfo = std::static_pointer_cast<BenDictionary>(decoder.decode(encodedData));
 
     // Get digest of info dictionary
     auto infoBeginPos = encodedData.find("4:info");
@@ -80,5 +113,43 @@ void TorrentFile::parseFile(const std::string &path)
         m_infoHash.update((const uint8_t*)infoDictStr.c_str(), infoDictStr.size());
         m_infoHash.finalize();
     }
+
+    // Calculate total file size
+    calculateFileSize();
 }
 
+void TorrentFile::calculateFileSize()
+{
+    BenDictionary *infoDict = getInfoDictionary();
+    if (!infoDict)
+        return;
+
+    // If single file mode, file size will be assicated with key "length"
+    auto it = infoDict->find("length");
+    if (it != infoDict->end())
+    {
+        m_size = (uint64_t) static_cast<BenInt*>(it->second.get())->getValue();
+    }
+    else
+    {
+        // For multi-file mode, must calculate the sum of each file's respective length
+
+        // First get files list
+        it = infoDict->find("files");
+        if (it == infoDict->end())
+        {
+            LOG_ERROR("torrent_protocol.TorrentFile", "Torrent is missing file information");
+            return;
+        }
+        BenList *fileList = static_cast<BenList*>(it->second.get());
+
+        // Next, iterate through list of files
+        for (auto fileIt = fileList->begin(); fileIt != fileList->end(); ++fileIt)
+        {
+            BenDictionary *fileDict = static_cast<BenDictionary*>(fileIt->get());
+            auto lenIt = fileDict->find("length");
+            if (lenIt != fileDict->end())
+                m_size += static_cast<BenInt*>(lenIt->second.get())->getValue();
+        }
+    }
+}

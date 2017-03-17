@@ -61,6 +61,13 @@ namespace http
             m_parameters[key] = StringHelper::toString(value);
         }
 
+        /// Associates the key parameter to the given value
+        template <typename T>
+        void setParameter(std::string key, T value, size_t len)
+        {
+            m_parameters[key] = StringHelper::toString(value).substr(0, len);
+        }
+
     private:
         /// Converts the string, wherever applicable, into percent encoded URI format
         std::string getEncodedFor(const std::string &str) const;

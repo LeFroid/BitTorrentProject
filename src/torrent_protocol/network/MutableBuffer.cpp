@@ -37,7 +37,7 @@ namespace network
         m_readPos(0),
         m_writePos(0)
     {
-        m_data.reserve(capacity);
+        m_data.resize(capacity);
     }
 
     MutableBuffer::MutableBuffer(const MutableBuffer &other) :
@@ -97,8 +97,10 @@ namespace network
         return m_data.capacity() - m_writePos;
     }
 
-    const MutableBuffer::size_type MutableBuffer::getSizeUnread() const
+    const MutableBuffer::size_type MutableBuffer::getSizeUnread()
     {
+        if (m_writePos < m_readPos)
+            m_writePos = m_readPos;
         return m_writePos - m_readPos;
     }
 

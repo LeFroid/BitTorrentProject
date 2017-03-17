@@ -40,7 +40,7 @@ namespace network
     {
     public:
         /// TrackerClient constructor
-        explicit TrackerClient(boost::asio::io_service &ioService);
+        explicit TrackerClient(boost::asio::io_service &ioService, Socket::Mode mode);
 
         /// Sets the tracker client's shared_ptr to the Torrent File object
         /// which will be used to request peer information from

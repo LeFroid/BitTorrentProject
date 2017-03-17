@@ -70,7 +70,7 @@ namespace network
         const size_type getAvailableSpace() const;
 
         /// Returns the number of bytes that have not been marked as read from
-        const size_type getSizeUnread() const;
+        const size_type getSizeUnread();
 
         /// Returns the number of bytes that have not been writen from the buffer
         const size_type getSizeNotWritten() const;

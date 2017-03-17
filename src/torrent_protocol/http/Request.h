@@ -43,7 +43,7 @@ namespace http
         {
             std::ostringstream oss;
             oss << "GET " << url.getRequest() << " HTTP/1.1\r\n";
-            oss << "Host: " << url.getHost() << "\r\n\r\n";
+            oss << "Host: " << url.getHost() <<  "\r\n\r\n";
             return oss.str();
         }
     };

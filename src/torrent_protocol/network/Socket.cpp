@@ -28,13 +28,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace network
 {
-    Socket::Socket(boost::asio::io_service &ioService) :
+    Socket::Socket(boost::asio::io_service &ioService, Socket::Mode mode) :
         m_socket(ioService),
+        m_udpSocket(ioService),
+        m_mode(mode),
         m_bufferRead(),
         m_queueSend(),
         m_lockSend(),
         m_isClosing(false)
     {
+    }
+
+    Socket::~Socket()
+    {
+        if (!isClosing())
+            close();
     }
 
     bool Socket::isClosing() const
@@ -45,7 +53,11 @@ namespace network
     void Socket::close()
     {
         m_isClosing.store(true);
-        m_socket.close();
+
+        if (m_mode == Mode::TCP)
+            m_socket.close();
+        else
+            m_udpSocket.close();
     }
 
     void Socket::read()
@@ -57,8 +69,16 @@ namespace network
         if (!m_bufferRead.getAvailableSpace())
             m_bufferRead.resize(m_bufferRead.getSize() * 2);
 
-        m_socket.async_read_some(boost::asio::buffer(m_bufferRead.getWritePointer(), m_bufferRead.getSizeNotWritten()),
-                                 std::bind(&Socket::handleRead, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
+        if (m_mode == Mode::TCP)
+        {
+            m_socket.async_read_some(boost::asio::buffer(m_bufferRead.getWritePointer(), m_bufferRead.getSizeNotWritten()),
+                                     std::bind(&Socket::handleRead, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
+        }
+        else
+        {
+            m_udpSocket.async_receive(boost::asio::buffer(m_bufferRead.getWritePointer(), m_bufferRead.getSizeNotWritten()),
+                                      std::bind(&Socket::handleRead, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
+        }
     }
 
     void Socket::send(MutableBuffer &&buffer)
@@ -73,14 +93,28 @@ namespace network
         sendNextItem();
     }
 
+    const Socket::Mode &Socket::getMode() const
+    {
+        return m_mode;
+    }
+
     void Socket::sendNextItem()
     {
         if (isClosing() || m_queueSend.empty())
             return;
 
         auto &buffer = m_queueSend.front();
-        m_socket.async_write_some(boost::asio::buffer(buffer.getReadPointer(), buffer.getSizeUnread()),
-                                  std::bind(&Socket::handleWrite, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
+
+        if (m_mode == Mode::TCP)
+        {
+            m_socket.async_write_some(boost::asio::buffer(buffer.getReadPointer(), buffer.getSizeUnread()),
+                                      std::bind(&Socket::handleWrite, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
+        }
+        else
+        {
+            m_udpSocket.async_send(boost::asio::buffer(buffer.getReadPointer(), buffer.getSizeUnread()),
+                                      std::bind(&Socket::handleWrite, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
+        }
     }
 
     void Socket::handleRead(const boost::system::error_code& ec, std::size_t bytesTransferred)

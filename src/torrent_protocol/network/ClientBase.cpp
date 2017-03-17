@@ -28,8 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace network
 {
-    ClientBase::ClientBase(boost::asio::io_service &ioService) :
-        Socket(ioService),
+    ClientBase::ClientBase(boost::asio::io_service &ioService, Mode mode) :
+        Socket(ioService, mode),
         m_isConnected(false)
     {
     }
@@ -39,11 +39,10 @@ namespace network
         m_socket.async_connect(endpoint, std::bind(&ClientBase::handleConnect, this, std::placeholders::_1));
     }
 
-    /*void ClientBase::connect(boost::asio::ip::udp::endpoint &endpoint)
+    void ClientBase::connect(boost::asio::ip::udp::endpoint &endpoint)
     {
-        setMode(UDP);
         m_udpSocket.async_connect(endpoint, std::bind(&ClientBase::handleConnect, this, std::placeholders::_1));
-    }*/
+    }
 
     bool ClientBase::isConnected() const
     {

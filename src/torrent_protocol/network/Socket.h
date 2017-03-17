@@ -40,8 +40,19 @@ namespace network
     class Socket : public std::enable_shared_from_this<Socket>
     {
     public:
-        /// Constructs a Socket, given a reference to an io_service
-        explicit Socket(boost::asio::io_service &ioService);
+        /// The mode of the socket
+        enum class Mode
+        {
+            TCP,
+            UDP
+        };
+
+    public:
+        /// Constructs a Socket, given a reference to an io_service and the mode of operation
+        explicit Socket(boost::asio::io_service &ioService, Mode mode);
+
+        /// Closes the socket if currently open
+        ~Socket();
 
         /// Returns true if the socket is closing or is closed, false if else
         bool isClosing() const;
@@ -55,9 +66,12 @@ namespace network
         /// Moves the buffer into the queue to be sent out
         void send(MutableBuffer &&buffer);
 
+        /// Returns the mode of operation
+        const Mode &getMode() const;
+
     protected:
         /// Called after a successful read operation
-        virtual void onRead() { }
+        virtual void onRead() = 0;
 
     private:
         /// Sends the item at the front of the send queue
@@ -72,6 +86,12 @@ namespace network
     protected:
         /// The TCP socket
         boost::asio::ip::tcp::socket m_socket;
+
+        /// The UDP socket
+        boost::asio::ip::udp::socket m_udpSocket;
+
+        /// The mode of the socket
+        Mode m_mode;
 
         /// Buffer used to store incoming data
         MutableBuffer m_bufferRead;

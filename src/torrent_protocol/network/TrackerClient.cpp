@@ -25,12 +25,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "TrackerClient.h"
 
+#include "Request.h"
 #include "TorrentFile.h"
+
+#include "LogHelper.h"
 
 namespace network
 {
-    TrackerClient::TrackerClient(boost::asio::io_service &ioService) :
-        ClientBase(ioService),
+    TrackerClient::TrackerClient(boost::asio::io_service &ioService, Socket::Mode mode) :
+        ClientBase(ioService, mode),
         m_torrentFile()
     {
     }
@@ -43,10 +46,46 @@ namespace network
     void TrackerClient::onConnect()
     {
         // Send GET request if m_torrentFile is valid
+        if (!m_torrentFile.get())
+            return;
+
+        // dummy peer id for testing
+        char peerID[20] = "-AZ2060-";
+        for (int i = 0; i < 12; ++i)
+            peerID[8 + i] = rand() % 256;
+        char infoHash[SHA_DIGEST_LENGTH];
+        memcpy(infoHash, m_torrentFile->getInfoHash(), 20);
+
+        http::URL announceURL = m_torrentFile->getAnnounceURL();
+        announceURL.setParameter("info_hash", m_torrentFile->getInfoHash(), 20);
+        announceURL.setParameter("peer_id", peerID, 20);
+        announceURL.setParameter("port", 6881);
+        announceURL.setParameter("uploaded", 0);
+        announceURL.setParameter("downloaded", 0);
+        announceURL.setParameter("left", m_torrentFile->getFileSize());
+        announceURL.setParameter("compact", 1);
+        announceURL.setParameter("event", "started");
+
+        std::string requestText = http::Request::getText(announceURL);
+        LOG_INFO("test", "Sending request as follows:\n", requestText);
+        MutableBuffer mb;
+        mb << requestText;
+        send(std::move(mb));
+        read();
     }
 
     void TrackerClient::onRead()
     {
+        // print response
+        std::string response;
+        response.reserve(m_bufferRead.getSizeUnread());
+        m_bufferRead >> response;
+        LOG_INFO("torrent.test", "read pos = ", m_bufferRead.getReadPosition());
+        LOG_INFO("torrent.test", "tracker response size = ", m_bufferRead.getSizeUnread());
+        LOG_INFO("torrent.test", "buffer read size = ", m_bufferRead.getSize());
+        LOG_INFO("torrent.test", "data is (raw string): ", response);
+        // close connection
+        close();
     }
 }
 
