@@ -25,6 +25,9 @@ LogHelper sLog;
 
 int main(int argc, char **argv)
 {
+    // Output logs to current directory
+    sLog.setLogDir("./");
+
     if (!Engine::initialize())
     {
         LOG_FATAL("client", "Graphics library has failed to initialize. SDL Error: ", SDL_GetError());

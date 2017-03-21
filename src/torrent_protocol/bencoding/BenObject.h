@@ -23,11 +23,24 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <memory>
+
 #pragma once
 
 namespace bencoding
 {
+    class BenObjectBase;
     class BenObjectVisitor;
+
+    /// Casts a shared_ptr of a BenObjectBase object into
+    /// a raw pointer of the given type.
+    /// Ex: std::shared_ptr<BenObjectBase> b;
+    ///     BenDictionary *d = bencast<BenDictionary*>(b);
+    template <class T>
+    T bencast(std::shared_ptr<BenObjectBase> ptr)
+    {
+        return static_cast<T>(ptr.get());
+    }
 
     /**
      * @brief The BenObjectBase class is used as a base class of BenObject so

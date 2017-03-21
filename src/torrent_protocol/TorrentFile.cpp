@@ -50,7 +50,7 @@ http::URL TorrentFile::getAnnounceURL()
         return http::URL("");
     }
 
-    return http::URL(static_cast<BenString*>(it->second.get())->getValue());
+    return http::URL(bencast<BenString*>(it->second)->getValue());
 }
 
 BenDictionary *TorrentFile::getInfoDictionary()
@@ -62,7 +62,7 @@ BenDictionary *TorrentFile::getInfoDictionary()
         return nullptr;
     }
 
-    return static_cast<BenDictionary*>(infoItr->second.get());
+    return bencast<BenDictionary*>(infoItr->second);
 }
 
 uint8_t *TorrentFile::getInfoHash()
@@ -128,7 +128,7 @@ void TorrentFile::calculateFileSize()
     auto it = infoDict->find("length");
     if (it != infoDict->end())
     {
-        m_size = (uint64_t) static_cast<BenInt*>(it->second.get())->getValue();
+        m_size = (uint64_t) bencast<BenInt*>(it->second)->getValue();
     }
     else
     {
@@ -141,15 +141,15 @@ void TorrentFile::calculateFileSize()
             LOG_ERROR("torrent_protocol.TorrentFile", "Torrent is missing file information");
             return;
         }
-        BenList *fileList = static_cast<BenList*>(it->second.get());
+        BenList *fileList = bencast<BenList*>(it->second);
 
         // Next, iterate through list of files
         for (auto fileIt = fileList->begin(); fileIt != fileList->end(); ++fileIt)
         {
-            BenDictionary *fileDict = static_cast<BenDictionary*>(fileIt->get());
+            BenDictionary *fileDict = bencast<BenDictionary*>(*fileIt);
             auto lenIt = fileDict->find("length");
             if (lenIt != fileDict->end())
-                m_size += static_cast<BenInt*>(lenIt->second.get())->getValue();
+                m_size += bencast<BenInt*>(lenIt->second)->getValue();
         }
     }
 }

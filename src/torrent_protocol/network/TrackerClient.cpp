@@ -25,10 +25,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "TrackerClient.h"
 
+#include "Decoder.h"
+#include "Response.h"
 #include "Request.h"
 #include "TorrentFile.h"
 
 #include "LogHelper.h"
+
+using namespace bencoding;
 
 namespace network
 {
@@ -67,7 +71,7 @@ namespace network
         announceURL.setParameter("event", "started");
 
         std::string requestText = http::Request::getText(announceURL);
-        LOG_INFO("test", "Sending request as follows:\n", requestText);
+        LOG_DEBUG("torrent_protocol.test", "Sending request as follows:\n", requestText);
         MutableBuffer mb;
         mb << requestText;
         send(std::move(mb));
@@ -76,14 +80,42 @@ namespace network
 
     void TrackerClient::onRead()
     {
-        // print response
-        std::string response;
-        response.reserve(m_bufferRead.getSizeUnread());
-        m_bufferRead >> response;
-        LOG_INFO("torrent.test", "read pos = ", m_bufferRead.getReadPosition());
-        LOG_INFO("torrent.test", "tracker response size = ", m_bufferRead.getSizeUnread());
-        LOG_INFO("torrent.test", "buffer read size = ", m_bufferRead.getSize());
-        LOG_INFO("torrent.test", "data is (raw string): ", response);
+        // Get HTTP response
+        std::string responseStr;
+        responseStr.reserve(m_bufferRead.getSizeUnread());
+        m_bufferRead >> responseStr;
+
+        http::Response response(responseStr);
+
+        // If response code is good, extract dictionary from payload
+        if (response.StatusCode == 200)
+        {
+            Decoder decoder;
+
+            auto benResponse = decoder.decode(response.Payload);
+            BenDictionary *dict = bencast<BenDictionary*>(benResponse);
+            if (!dict)
+            {
+                LOG_ERROR("torrent_protocol.network", "Unable to decode response from Tracker!");
+                close();
+                return;
+            }
+
+            auto keyItr = dict->find("failure reason");
+            if (keyItr != dict->end())
+            {
+                LOG_WARNING("torrent_protocol.network", "Failure to get torrent information from tracker. Reason given is: ",
+                            bencast<BenString*>(keyItr->second)->getValue());
+                close();
+                return;
+            }
+        }
+
+        LOG_DEBUG("torrent_protocol.test", "Response.Version = ", response.Version);
+        LOG_DEBUG("torrent_protocol.test", "Response.StatusCode = ", response.StatusCode);
+        LOG_DEBUG("torrent_protocol.test", "Response.Reason = ", response.Reason);
+        LOG_DEBUG("torrent_protocol.test", "Response.Payload = ", response.Payload);
+
         // close connection
         close();
     }
