@@ -54,11 +54,9 @@ namespace network
             return;
 
         // dummy peer id for testing
-        char peerID[20] = "-AZ2060-";
+        char peerID[21] = "-TR1330-";
         for (int i = 0; i < 12; ++i)
             peerID[8 + i] = rand() % 256;
-        char infoHash[SHA_DIGEST_LENGTH];
-        memcpy(infoHash, m_torrentFile->getInfoHash(), 20);
 
         http::URL announceURL = m_torrentFile->getAnnounceURL();
         announceURL.setParameter("info_hash", m_torrentFile->getInfoHash(), 20);

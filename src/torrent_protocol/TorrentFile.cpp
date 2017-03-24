@@ -77,7 +77,7 @@ const uint64_t &TorrentFile::getFileSize() const
 
 void TorrentFile::parseFile(const std::string &path)
 {
-    std::ifstream file(path, std::ifstream::in);
+    std::ifstream file(path, std::ifstream::in | std::ifstream::binary);
     if (!file.is_open())
         return;
 
@@ -108,7 +108,7 @@ void TorrentFile::parseFile(const std::string &path)
         decoder.decode(infoDictStr);
 
         auto infoEndPos = decoder.getIndex();
-        infoDictStr = encodedData.substr(infoBeginPos, infoEndPos - infoBeginPos + 1);
+        infoDictStr = encodedData.substr(infoBeginPos, infoEndPos);
 
         m_infoHash.update((const uint8_t*)infoDictStr.c_str(), infoDictStr.size());
         m_infoHash.finalize();

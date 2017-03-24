@@ -26,7 +26,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cctype>
 #include <iomanip>
 #include <sstream>
-
 #include "URL.h"
 
 namespace http
@@ -107,12 +106,13 @@ namespace http
     {
         std::ostringstream oss;
         oss << std::hex;
-        oss.fill(0);
+        oss.fill('0');
 
         for (char c : str)
         {
+            int cInt = int((unsigned char)c);
             // Check if character is unreserved, if so, add to string stream as-is
-            if (isalnum((unsigned char)c)
+            if (isalnum(cInt)
                     || c == '-'
                     || c == '_'
                     || c == '.'
@@ -123,7 +123,9 @@ namespace http
             }
 
             // Percent encode anything reserved
-            oss << '%' << std::setw(2) << int((unsigned char)c);
+            oss << std::uppercase;
+            oss << '%' << std::setw(2) << cInt;
+            oss << std::nouppercase;
         }
 
         return oss.str();

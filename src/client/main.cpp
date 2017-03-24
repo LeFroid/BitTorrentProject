@@ -69,8 +69,19 @@ int main(int argc, char **argv)
     std::shared_ptr<network::TrackerClient> client = std::make_shared<network::TrackerClient>(ioService, network::Socket::Mode::TCP);
     client->setTorrentFile(testFile);
 
-    std::string host = announce.getHost().substr(0, announce.getHost().find_last_of(':'));
-    std::string port = announce.getHost().substr(announce.getHost().find_last_of(':') + 1);
+    std::string host;
+    std::string port;
+    auto delimPos = announce.getHost().find_last_of(':');
+    if (delimPos != std::string::npos)
+    {
+        host = announce.getHost().substr(0, delimPos);
+        port = announce.getHost().substr(delimPos + 1);
+    }
+    else
+    {
+        host = announce.getHost();
+        port = "80";
+    }
 
     boost::asio::ip::tcp::resolver resolver(ioService);
     boost::asio::ip::tcp::resolver::query query(host, port);
