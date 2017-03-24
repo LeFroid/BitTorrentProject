@@ -33,7 +33,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using namespace bencoding;
 
 TorrentFile::TorrentFile(std::string path) :
-    m_bytesDownloaded(0),
     m_size(0),
     m_infoHash(),
     m_metaInfo()

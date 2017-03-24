@@ -67,9 +67,6 @@ private:
     void calculateFileSize();
 
 private:
-    /// Total number of bytes that have been downloaded
-    uint64_t m_bytesDownloaded;
-
     /// Total size of the file(s) associated with the torrent, in bytes
     uint64_t m_size;
 

@@ -49,6 +49,10 @@ namespace network
 
     void TrackerClient::onConnect()
     {
+        //todo: UDP support for trackers
+        if (getMode() != Socket::Mode::TCP)
+            return;
+
         // Send GET request if m_torrentFile is valid
         if (!m_torrentFile.get())
             return;
@@ -69,7 +73,7 @@ namespace network
         announceURL.setParameter("event", "started");
 
         std::string requestText = http::Request::getText(announceURL);
-        LOG_DEBUG("torrent_protocol.test", "Sending request as follows:\n", requestText);
+        LOG_DEBUG("torrent_protocol.network", "Sending request as follows:\n", requestText);
         MutableBuffer mb;
         mb << requestText;
         send(std::move(mb));
@@ -78,6 +82,10 @@ namespace network
 
     void TrackerClient::onRead()
     {
+        //todo: UDP support for trackers
+        if (getMode() != Socket::Mode::TCP)
+            return;
+
         // Get HTTP response
         std::string responseStr;
         responseStr.reserve(m_bufferRead.getSizeUnread());
@@ -99,6 +107,7 @@ namespace network
                 return;
             }
 
+            // Check for failure or warning message
             auto keyItr = dict->find("failure reason");
             if (keyItr != dict->end())
             {
@@ -107,6 +116,26 @@ namespace network
                 close();
                 return;
             }
+            keyItr = dict->find("warning message");
+            if (keyItr != dict->end())
+                LOG_WARNING("torrent_protocol.network", "Warning reported by tracker: ", bencast<BenString*>(keyItr->second)->getValue());
+
+            // Check for interval and min interval to send requests to tracker
+
+            /*
+             * interval: Interval in seconds that the client should wait between sending regular requests to the tracker
+             * min interval: (optional) Minimum announce interval. If present clients must not reannounce more frequently than this.
+             * tracker id: A string that the client should send back on its next announcements. If absent and a previous announce sent a tracker id, do not discard the old value; keep using it.
+             * complete: number of peers with the entire file, i.e. seeders (integer)
+             * incomplete: number of non-seeder peers, aka "leechers" (integer)
+             *
+             * peers: (dictionary model) The value is a list of dictionaries, each with the following keys:
+             *   peer id: peer's self-selected ID, as described above for the tracker request (string)
+             *   ip: peer's IP address either IPv6 (hexed) or IPv4 (dotted quad) or DNS name (string)
+             *   port: peer's port number (integer)
+             *
+             * peers: (binary model) Instead of using the dictionary model described above, the peers value may be a string consisting of multiples of 6 bytes. First 4 bytes are the IP address and last 2 bytes are the port number. All in network (big endian) notation.
+             */
         }
 
         LOG_DEBUG("torrent_protocol.test", "Response.Version = ", response.Version);
