@@ -23,42 +23,39 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "ClientBase.h"
-#include "LogHelper.h"
+#include <cstdint>
+#include "Socket.h"
 
 namespace network
 {
-    ClientBase::ClientBase(boost::asio::io_service &ioService, Mode mode) :
-        Socket(ioService, mode),
-        m_isConnected(false)
+    /**
+     * @class Listener
+     * @brief Listens on a given port for incoming connections, accepting them
+     *        if their info_hash is found in the \ref TorrentMgr info hash map
+     */
+    class Listener
     {
-    }
+    public:
+        /// Listener constructor - requires a reference to an io service, port number
+        /// and maximum number of connections to allow
+        explicit Listener(boost::asio::io_service &ioService);
 
-    void ClientBase::connect(boost::asio::ip::tcp::endpoint &endpoint)
-    {
-        m_socket.async_connect(endpoint, std::bind(&ClientBase::handleConnect, this, std::placeholders::_1));
-    }
+        /**
+         * @brief start Begins accepting incoming connections
+         * @param port Port number
+         * @param maxConnections The maximum number of pending connections to have queued at a time
+         */
+        void start(uint16_t port, int maxConnections);
 
-    void ClientBase::connect(boost::asio::ip::udp::endpoint &endpoint)
-    {
-        m_udpSocket.async_connect(endpoint, std::bind(&ClientBase::handleConnect, this, std::placeholders::_1));
-    }
+    private:
+        /// Accepts the next connection
+        void accept();
 
-    bool ClientBase::isConnected() const
-    {
-        return m_isConnected.load();
-    }
+    private:
+        /// Reference to the io service being used
+        boost::asio::io_service &m_ioService;
 
-    void ClientBase::handleConnect(const boost::system::error_code& ec)
-    {
-        if (ec)
-        {
-            LOG_ERROR("torrent_protocol.network", "Error with ClientBase::connect(...), error message: ", ec.message());
-            close();
-            return;
-        }
-
-        m_isConnected.store(true);
-        onConnect();
-    }
+        /// TCP acceptor
+        boost::asio::ip::tcp::acceptor m_acceptor;
+    };
 }

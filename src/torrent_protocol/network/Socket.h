@@ -33,12 +33,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace network
 {
+    class Listener;
+
     /**
      * @class Socket
      * @brief Responsible for communications
      */
     class Socket : public std::enable_shared_from_this<Socket>
     {
+        friend class Listener;
+
     public:
         /// The mode of the socket
         enum class Mode
@@ -53,6 +57,16 @@ namespace network
 
         /// Closes the socket if currently open
         ~Socket();
+
+    public:
+        /// Attempts to connect to the given tcp endpoint
+        void connect(boost::asio::ip::tcp::endpoint &endpoint);
+
+        /// Attempts to connect to the given udp endpoint
+        void connect(boost::asio::ip::udp::endpoint &endpoint);
+
+        /// Returns true if the client has formed an active connection, false if else
+        bool isConnected() const;
 
         /// Returns true if the socket is closing or is closed, false if else
         bool isClosing() const;
@@ -70,12 +84,18 @@ namespace network
         const Mode &getMode() const;
 
     protected:
+        /// Called during handleConnect(..) if connection has been made successfully
+        virtual void onConnect() { }
+
         /// Called after a successful read operation
         virtual void onRead() = 0;
 
     private:
         /// Sends the item at the front of the send queue
         void sendNextItem();
+
+        /// Internal callback for client connect event
+        void handleConnect(const boost::system::error_code& ec);
 
         /// Internal read handler
         void handleRead(const boost::system::error_code& ec, std::size_t bytesTransferred);
@@ -104,5 +124,8 @@ namespace network
 
         /// True if socket is being closed, false if else
         std::atomic_bool m_isClosing;
+
+        /// True if client has formed a connection, false if else
+        std::atomic_bool m_isConnected;
     };
 }

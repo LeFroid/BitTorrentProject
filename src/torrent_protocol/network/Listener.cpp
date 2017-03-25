@@ -23,43 +23,28 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once
-
-#include "Socket.h"
+#include "Listener.h"
 
 namespace network
 {
-    /**
-     * @class ClientBase
-     * @brief Base class for async. client implementations
-     */
-    class ClientBase : public Socket
+    Listener::Listener(boost::asio::io_service &ioService) :
+        m_ioService(ioService),
+        m_acceptor(ioService)
     {
-    public:
-        /// Constructs a Client object, given a reference to an io_service and the mode
-        explicit ClientBase(boost::asio::io_service &ioService, Socket::Mode mode);
+    }
 
-        /// Attempts to connect to the given tcp endpoint
-        void connect(boost::asio::ip::tcp::endpoint &endpoint);
+    void Listener::start(uint16_t port, int maxConnections)
+    {
+        boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), port);
+        m_acceptor.open(endpoint.protocol());
+        m_acceptor.bind(endpoint);
+        m_acceptor.listen(maxConnections);
 
-        /// Attempts to connect to the given udp endpoint
-        void connect(boost::asio::ip::udp::endpoint &endpoint);
+        accept();
+    }
 
-        /// Returns true if the client has formed an active connection, false if else
-        bool isConnected() const;
-
-    protected:
-        /// Called during handleConnect(..) if connection has been made successfully
-        virtual void onConnect() = 0;
-
-        /// Called after a successful read operation
-        virtual void onRead() = 0;
-
-        /// Callback for client connect event
-        void handleConnect(const boost::system::error_code& ec);
-
-    protected:
-        /// True if client has formed a connection, false if else
-        std::atomic_bool m_isConnected;
-    };
+    void Listener::accept()
+    {
+        //todo
+    }
 }

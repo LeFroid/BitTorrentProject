@@ -37,7 +37,7 @@ using namespace bencoding;
 namespace network
 {
     TrackerClient::TrackerClient(boost::asio::io_service &ioService, Socket::Mode mode) :
-        ClientBase(ioService, mode),
+        Socket(ioService, mode),
         m_torrentFile()
     {
     }
@@ -89,7 +89,11 @@ namespace network
         // Get HTTP response
         std::string responseStr;
         responseStr.reserve(m_bufferRead.getSizeUnread());
-        m_bufferRead >> responseStr;
+        for (auto i = 0; i < responseStr.capacity(); ++i)
+        {
+            responseStr.push_back(*(m_bufferRead.getReadPointer()));
+            m_bufferRead.advanceReadPosition(1);
+        }
 
         http::Response response(responseStr);
 

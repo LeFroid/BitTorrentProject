@@ -35,7 +35,8 @@ namespace network
         m_bufferRead(),
         m_queueSend(),
         m_lockSend(),
-        m_isClosing(false)
+        m_isClosing(false),
+        m_isConnected(false)
     {
     }
 
@@ -43,6 +44,23 @@ namespace network
     {
         if (!isClosing())
             close();
+    }
+
+    void Socket::connect(boost::asio::ip::tcp::endpoint &endpoint)
+    {
+        m_mode = Mode::TCP;
+        m_socket.async_connect(endpoint, std::bind(&Socket::handleConnect, shared_from_this(), std::placeholders::_1));
+    }
+
+    void Socket::connect(boost::asio::ip::udp::endpoint &endpoint)
+    {
+        m_mode = Mode::UDP;
+        m_udpSocket.async_connect(endpoint, std::bind(&Socket::handleConnect, shared_from_this(), std::placeholders::_1));
+    }
+
+    bool Socket::isConnected() const
+    {
+        return m_isConnected.load();
     }
 
     bool Socket::isClosing() const
@@ -115,6 +133,19 @@ namespace network
             m_udpSocket.async_send(boost::asio::buffer(buffer.getReadPointer(), buffer.getSizeUnread()),
                                       std::bind(&Socket::handleWrite, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
         }
+    }
+
+    void Socket::handleConnect(const boost::system::error_code& ec)
+    {
+        if (ec)
+        {
+            LOG_ERROR("torrent_protocol.network", "Error with Socket::connect(...), error message: ", ec.message());
+            close();
+            return;
+        }
+
+        m_isConnected.store(true);
+        onConnect();
     }
 
     void Socket::handleRead(const boost::system::error_code& ec, std::size_t bytesTransferred)
