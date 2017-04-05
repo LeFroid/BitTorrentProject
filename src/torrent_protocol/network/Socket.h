@@ -55,6 +55,12 @@ namespace network
         /// Constructs a Socket, given a reference to an io_service and the mode of operation
         explicit Socket(boost::asio::io_service &ioService, Mode mode);
 
+        /// Constructs a Socket with a given tcp socket
+        Socket(boost::asio::ip::tcp::socket &&socket);
+
+        /// Constructs a Socket with a given udp socket
+        Socket(boost::asio::ip::udp::socket &&socket);
+
         /// Closes the socket if currently open
         ~Socket();
 

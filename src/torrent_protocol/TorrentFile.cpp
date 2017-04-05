@@ -23,6 +23,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <cmath>
 #include <fstream>
 
 #include "LogHelper.h"
@@ -33,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using namespace bencoding;
 
 TorrentFile::TorrentFile(std::string path) :
+    m_numPieces(0),
     m_size(0),
     m_infoHash(),
     m_metaInfo()
@@ -72,6 +74,11 @@ uint8_t *TorrentFile::getInfoHash()
 const uint64_t &TorrentFile::getFileSize() const
 {
     return m_size;
+}
+
+const uint64_t &TorrentFile::getNumPieces() const
+{
+    return m_numPieces;
 }
 
 void TorrentFile::parseFile(const std::string &path)
@@ -150,5 +157,12 @@ void TorrentFile::calculateFileSize()
             if (lenIt != fileDict->end())
                 m_size += bencast<BenInt*>(lenIt->second)->getValue();
         }
+    }
+
+    // Also determine piece count based on total size
+    it = infoDict->find("piece length");
+    if (it != infoDict->end())
+    {
+        m_numPieces = (uint64_t) ceill( ((long double)m_size) / bencast<BenInt*>(it->second)->getValue() );
     }
 }

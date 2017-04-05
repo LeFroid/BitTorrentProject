@@ -59,6 +59,9 @@ public:
     /// Returns the total length in bytes of the file(s) associated with the torrent
     const uint64_t &getFileSize() const;
 
+    /// Returns the total number of pieces that make up the file
+    const uint64_t &getNumPieces() const;
+
 private:
     /// Parses the torrent file with the given path, storing the decoded data into the meta info dictionary
     void parseFile(const std::string &path);
@@ -67,6 +70,9 @@ private:
     void calculateFileSize();
 
 private:
+    /// Total number of pieces that make up the torrent file
+    uint64_t m_numPieces;
+
     /// Total size of the file(s) associated with the torrent, in bytes
     uint64_t m_size;
 

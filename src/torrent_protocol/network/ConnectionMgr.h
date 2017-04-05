@@ -23,10 +23,38 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <cstdint>
+#include <memory>
+#include <vector>
+
 namespace network
 {
+    class Peer;
+
+    /**
+     * @class ConnectionMgr
+     * @brief Responsible for active peer-to-peer connections
+     */
     class ConnectionMgr
     {
+    public:
+        /// Begins the timer-based routine of checking for stale connections
+        void run();
 
+    public:
+        /// Adds a peer to the list of active connections
+        void addPeer(std::shared_ptr<Peer> peer);
+
+        /// Returns the number of peers which the client is connected to
+        size_t getNumPeers() const;
+
+    private:
+        /// Iterates through the container of pointers to peers, checking
+        /// if any connections have gone stale, and if so, removing them.
+        void checkForStaleConns();
+
+    private:
+        /// Container for active peer connections
+        std::vector< std::shared_ptr<Peer> > m_connections;
     };
 }

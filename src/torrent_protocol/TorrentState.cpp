@@ -23,34 +23,11 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once
+#include "TorrentFile.h"
+#include "TorrentState.h"
 
-#include "Socket.h"
-
-namespace network
+TorrentState::TorrentState(const std::string &torrentFilePath)
 {
-    /**
-     * @class Peer
-     * @brief Represents a single remote entity in the swarm, connected
-     *        to the local client through a TCP socket
-     */
-    class Peer : public Socket
-    {
-    public:
-        /// Constructs a new peer object, given a reference to an io_service
-        explicit Peer(boost::asio::io_service &ioService);
-
-        //void requestPiece(uint64_t pieceNum);
-
-    protected:
-        /// Called after the local client has successfully initiated a connection with a remote peer
-        virtual void onConnect() override;
-
-        /// Called after a successful read operation
-        virtual void onRead() override;
-
-    private:
-        /// Used to determine if handshake has been performed
-        std::atomic_bool m_doneHandshake;
-    };
+    m_file = std::make_shared<TorrentFile>(torrentFilePath);
+    m_pieceInfo.resize(m_file->getNumPieces());
 }

@@ -40,6 +40,32 @@ namespace network
     {
     }
 
+    Socket::Socket(boost::asio::ip::tcp::socket &&socket) :
+        m_socket(std::move(socket)),
+        m_udpSocket(m_socket.get_io_service()),
+        m_mode(Socket::Mode::TCP),
+        m_bufferRead(),
+        m_queueSend(),
+        m_lockSend(),
+        m_isClosing(false)
+    {
+        m_udpSocket.shutdown(boost::asio::ip::udp::socket::shutdown_both);
+        m_isConnected.store(m_socket.is_open());
+    }
+
+    Socket::Socket(boost::asio::ip::udp::socket &&socket) :
+        m_socket(socket.get_io_service()),
+        m_udpSocket(std::move(socket)),
+        m_mode(Socket::Mode::UDP),
+        m_bufferRead(),
+        m_queueSend(),
+        m_lockSend(),
+        m_isClosing(false)
+    {
+        m_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+        m_isConnected.store(m_udpSocket.is_open());
+    }
+
     Socket::~Socket()
     {
         if (!isClosing())
@@ -50,12 +76,14 @@ namespace network
     {
         m_mode = Mode::TCP;
         m_socket.async_connect(endpoint, std::bind(&Socket::handleConnect, shared_from_this(), std::placeholders::_1));
+        m_udpSocket.shutdown(boost::asio::ip::udp::socket::shutdown_both);
     }
 
     void Socket::connect(boost::asio::ip::udp::endpoint &endpoint)
     {
         m_mode = Mode::UDP;
         m_udpSocket.async_connect(endpoint, std::bind(&Socket::handleConnect, shared_from_this(), std::placeholders::_1));
+        m_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
     }
 
     bool Socket::isConnected() const

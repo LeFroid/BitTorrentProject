@@ -140,6 +140,8 @@ namespace network
              *
              * peers: (binary model) Instead of using the dictionary model described above, the peers value may be a string consisting of multiples of 6 bytes. First 4 bytes are the IP address and last 2 bytes are the port number. All in network (big endian) notation.
              */
+
+            // send dictionary to torrent state
         }
 
         LOG_DEBUG("torrent_protocol.test", "Response.Version = ", response.Version);

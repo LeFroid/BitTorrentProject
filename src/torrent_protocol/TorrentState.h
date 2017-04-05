@@ -25,32 +25,24 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "Socket.h"
+#include <boost/dynamic_bitset.hpp>
+#include <memory>
 
-namespace network
+class TorrentFile;
+
+class TorrentState
 {
-    /**
-     * @class Peer
-     * @brief Represents a single remote entity in the swarm, connected
-     *        to the local client through a TCP socket
-     */
-    class Peer : public Socket
-    {
-    public:
-        /// Constructs a new peer object, given a reference to an io_service
-        explicit Peer(boost::asio::io_service &ioService);
+public:
+    /// TorrentState constructor
+    explicit TorrentState(const std::string &torrentFilePath);
 
-        //void requestPiece(uint64_t pieceNum);
+private:
+    /// Shared pointer to the torrent file
+    std::shared_ptr<TorrentFile> m_file;
 
-    protected:
-        /// Called after the local client has successfully initiated a connection with a remote peer
-        virtual void onConnect() override;
+    /// Bitset representing pieces of the torrent that have or haven't yet been
+    /// downloaded. 1 = Downloaded, 0 = Not Downloaded
+    boost::dynamic_bitset<> m_pieceInfo;
 
-        /// Called after a successful read operation
-        virtual void onRead() override;
-
-    private:
-        /// Used to determine if handshake has been performed
-        std::atomic_bool m_doneHandshake;
-    };
-}
+    //std::ofstream m_diskFile; -- figure out multi file mode downloads
+};

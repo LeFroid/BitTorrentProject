@@ -26,9 +26,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include <unordered_map>
-
-#include "TorrentFile.h"
 #include "HashMapUtils.h"
+
+class TorrentState;
 
 class TorrentMgr
 {
@@ -36,7 +36,12 @@ public:
     /// Default constructor
     TorrentMgr() = default;
 
+    /// Adds a torrent to the map of torrent files being downloaded. If the file
+    /// associated with the given path is valid, the torrent file will begin downloading
+    /// immediately.
+    std::shared_ptr<TorrentState> addTorrent(const std::string &torrentPath);
+
 private:
-    /// Hash map of info_hashes to shared TorrentFile pointers
-    std::unordered_map< uint8_t*, std::shared_ptr<TorrentFile>, DigestHasher, DigestCompare > m_torrentMap;
+    /// Hash map of info_hashes to shared_ptr's of TorrentStates
+    std::unordered_map< uint8_t*, std::shared_ptr<TorrentState>, DigestHasher, DigestCompare > m_torrentMap;
 };
