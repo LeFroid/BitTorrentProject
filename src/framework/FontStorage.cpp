@@ -50,7 +50,7 @@ namespace gui
         switch (fontType)
         {
             case DROID_SANS: fontPath = m_dataDir + "/DroidSans.ttf"; break;
-            case VERDANA:    fontPath = m_dataDir + "/verdana.ttf"; break;
+            case AMBLE:      fontPath = m_dataDir + "/Amble-Regular.ttf"; break;
             default: break;
         }
 
@@ -64,7 +64,7 @@ namespace gui
         m_dataDir = dataDir;
 
         std::string droidSansPath = dataDir + "/DroidSans.ttf";
-        std::string verdanaPath = dataDir + "/verdana.ttf";
+        std::string amblePath = dataDir + "/Amble-Regular.ttf";
 
         // Load fonts multiple times for common font point sizes: 12, 14, 18, 24
         loadFont(DROID_SANS, droidSansPath, 12);
@@ -72,10 +72,10 @@ namespace gui
         loadFont(DROID_SANS, droidSansPath, 18);
         loadFont(DROID_SANS, droidSansPath, 24);
 
-        loadFont(VERDANA, verdanaPath, 12);
-        loadFont(VERDANA, verdanaPath, 14);
-        loadFont(VERDANA, verdanaPath, 18);
-        loadFont(VERDANA, verdanaPath, 24);
+        loadFont(AMBLE, amblePath, 12);
+        loadFont(AMBLE, amblePath, 14);
+        loadFont(AMBLE, amblePath, 18);
+        loadFont(AMBLE, amblePath, 24);
     }
 
     void FontStorage::loadFont(FontType fontType, const std::string &path, int pointSize)

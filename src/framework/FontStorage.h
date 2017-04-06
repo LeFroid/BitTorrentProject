@@ -38,7 +38,7 @@ namespace gui
     enum FontType
     {
         DROID_SANS = 0,     // DroidSans.ttf
-        VERDANA    = 1,     // Verdana.ttf
+        AMBLE      = 1,     // Amble-Regular.ttf
     };
 
     /**
