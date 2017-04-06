@@ -62,7 +62,7 @@ namespace network
         Socket(boost::asio::ip::udp::socket &&socket);
 
         /// Closes the socket if currently open
-        ~Socket();
+        virtual ~Socket();
 
     public:
         /// Attempts to connect to the given tcp endpoint

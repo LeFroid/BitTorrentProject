@@ -25,6 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <boost/asio.hpp>
 #include <boost/dynamic_bitset.hpp>
 #include <memory>
 
@@ -33,8 +34,11 @@ class TorrentFile;
 class TorrentState
 {
 public:
-    /// TorrentState constructor
+    /// TorrentState constructor - requires torrent file path
     explicit TorrentState(const std::string &torrentFilePath);
+
+    /// Returns a reference to the torrent file pointer
+    std::shared_ptr<TorrentFile> &getTorrentFile();
 
 private:
     /// Shared pointer to the torrent file

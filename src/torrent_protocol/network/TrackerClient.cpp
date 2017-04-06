@@ -29,6 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Response.h"
 #include "Request.h"
 #include "TorrentFile.h"
+#include "TorrentState.h"
+#include "URL.h"
 
 #include "LogHelper.h"
 
@@ -38,13 +40,41 @@ namespace network
 {
     TrackerClient::TrackerClient(boost::asio::io_service &ioService, Socket::Mode mode) :
         Socket(ioService, mode),
-        m_torrentFile()
+        m_peerID(nullptr),
+        m_torrentState()
     {
     }
 
-    void TrackerClient::setTorrentFile(std::shared_ptr<TorrentFile> file)
+    void TrackerClient::setPeerID(const char *peerID)
     {
-        m_torrentFile = file;
+        m_peerID = peerID;
+    }
+
+    void TrackerClient::setTorrentState(std::shared_ptr<TorrentState> state)
+    {
+        m_torrentState = state;
+    }
+
+    boost::asio::ip::tcp::endpoint TrackerClient::findTrackerEndpointTCP()
+    {
+        http::URL announce = m_torrentState->getTorrentFile()->getAnnounceURL();
+        std::string host;
+        std::string port;
+        auto delimPos = announce.getHost().find_last_of(':');
+        if (delimPos != std::string::npos)
+        {
+            host = announce.getHost().substr(0, delimPos);
+            port = announce.getHost().substr(delimPos + 1);
+        }
+        else
+        {
+            host = announce.getHost();
+            port = "80";
+        }
+
+        boost::asio::ip::tcp::resolver resolver(m_socket.get_io_service());
+        boost::asio::ip::tcp::resolver::query query(host, port);
+        return (*resolver.resolve(query));
     }
 
     void TrackerClient::onConnect()
@@ -53,22 +83,21 @@ namespace network
         if (getMode() != Socket::Mode::TCP)
             return;
 
-        // Send GET request if m_torrentFile is valid
-        if (!m_torrentFile.get())
+        // Send GET request if TorrentState and TorrentFile are both valid
+        if (!m_torrentState.get())
             return;
 
-        // dummy peer id for testing
-        char peerID[21] = "-TR1330-";
-        for (int i = 0; i < 12; ++i)
-            peerID[8 + i] = rand() % 256;
+        auto &torrentFile = m_torrentState->getTorrentFile();
+        if (!torrentFile.get())
+            return;
 
-        http::URL announceURL = m_torrentFile->getAnnounceURL();
-        announceURL.setParameter("info_hash", m_torrentFile->getInfoHash(), 20);
-        announceURL.setParameter("peer_id", peerID, 20);
+        http::URL announceURL = torrentFile->getAnnounceURL();
+        announceURL.setParameter("info_hash", torrentFile->getInfoHash(), 20);
+        announceURL.setParameter("peer_id", m_peerID, 20);
         announceURL.setParameter("port", 6881);
         announceURL.setParameter("uploaded", 0);
         announceURL.setParameter("downloaded", 0);
-        announceURL.setParameter("left", m_torrentFile->getFileSize());
+        announceURL.setParameter("left", torrentFile->getFileSize());
         announceURL.setParameter("compact", 1);
         announceURL.setParameter("event", "started");
 

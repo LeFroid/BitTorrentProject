@@ -12,16 +12,28 @@
 #include "Decoder.h"
 #include "Encoder.h"
 
+#include "SHA1Hash.h"
+#include "TorrentState.h"
 #include "TorrentFile.h"
-#include "TrackerClient.h"
-#include <boost/asio.hpp>
-#include <boost/asio/signal_set.hpp>
+#include "TorrentMgr.h"
+
+#include "EventHandler.h"
+#include "FontStorage.h"
+#include "Keybinder.h"
+#include "ObjectManager.h"
+#include "Window.h"
 
 using namespace bencoding;
 using namespace gui;
 
 // Log helper
 LogHelper sLog;
+
+void loadResources()
+{
+    // load fonts
+    FontStorage::getInstance()->loadFonts("../Fonts/");
+}
 
 int main(int argc, char **argv)
 {
@@ -58,38 +70,32 @@ int main(int argc, char **argv)
     LOG_INFO("client", "encoded dictionary represented as: ", encoder.getData());
 
     // Begin test on torrent file & tracker
+    std::shared_ptr<TorrentState> testFile;
+    TorrentMgr mgr;
     if (argc > 1)
     {
-    std::shared_ptr<TorrentFile> testFile(std::make_shared<TorrentFile>(argv[1]));
-    http::URL announce = testFile->getAnnounceURL();
-    boost::asio::io_service ioService;
-    boost::asio::signal_set sigs(ioService, SIGINT, SIGTERM);
-    sigs.async_wait(std::bind(&boost::asio::io_service::stop, &ioService));
+        std::string torrentFilePath(argv[1]);
+        testFile = mgr.addTorrent(torrentFilePath);
 
-    std::shared_ptr<network::TrackerClient> client = std::make_shared<network::TrackerClient>(ioService, network::Socket::Mode::TCP);
-    client->setTorrentFile(testFile);
+        mgr.run();
 
-    std::string host;
-    std::string port;
-    auto delimPos = announce.getHost().find_last_of(':');
-    if (delimPos != std::string::npos)
-    {
-        host = announce.getHost().substr(0, delimPos);
-        port = announce.getHost().substr(delimPos + 1);
-    }
-    else
-    {
-        host = announce.getHost();
-        port = "80";
-    }
-
-    boost::asio::ip::tcp::resolver resolver(ioService);
-    boost::asio::ip::tcp::resolver::query query(host, port);
-    boost::asio::ip::tcp::endpoint remote_endpoint = *resolver.resolve(query);
-    client->connect(remote_endpoint);
-    ioService.run();
+        LOG_INFO("client", "Torrent file size = ", testFile->getTorrentFile()->getFileSize());
     }
     // End test on torrent file & tracker
+
+    // Spawn an empty window
+    Window *win = ObjectManager::getInstance()->createObject<Window>("BitTorrent Client", 1280, 800, false);
+    win->draw();
+    win->setBackgroundColor(Color(255, 255, 255, 255));
+
+    EventHandler *eventHandler = EventHandler::getInstance();
+    eventHandler->setWindowPtr(win);
+    eventHandler->pollForEvents();
+
+    FontStorage::destroyInstance();
+    //Keybinder::destroyInstance();
+    EventHandler::destroyInstance();
+    ObjectManager::destroyInstance();
 
     Engine::halt();
 

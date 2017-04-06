@@ -26,8 +26,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "TorrentFile.h"
 #include "TorrentState.h"
 
-TorrentState::TorrentState(const std::string &torrentFilePath)
+TorrentState::TorrentState(const std::string &torrentFilePath) :
+    m_file(std::make_shared<TorrentFile>(torrentFilePath)),
+    m_pieceInfo(m_file->getNumPieces())
 {
-    m_file = std::make_shared<TorrentFile>(torrentFilePath);
-    m_pieceInfo.resize(m_file->getNumPieces());
+}
+
+std::shared_ptr<TorrentFile> &TorrentState::getTorrentFile()
+{
+    return m_file;
 }

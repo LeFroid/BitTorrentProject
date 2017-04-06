@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include "Socket.h"
 
-class TorrentFile;
+class TorrentState;
 
 namespace network
 {
@@ -42,9 +42,15 @@ namespace network
         /// TrackerClient constructor
         explicit TrackerClient(boost::asio::io_service &ioService, Socket::Mode mode);
 
-        /// Sets the tracker client's shared_ptr to the Torrent File object
-        /// which will be used to request peer information from
-        void setTorrentFile(std::shared_ptr<TorrentFile> file);
+        /// Sets the Peer ID that will be transmitted to the tracker service
+        void setPeerID(const char *peerID);
+
+        /// Sets the tracker client's shared_ptr to the Torrent State object
+        /// which will be used to request peer information
+        void setTorrentState(std::shared_ptr<TorrentState> state);
+
+        /// Attempts to determine the endpoint of the tracker service, based on the Torrent File's announce URL
+        boost::asio::ip::tcp::endpoint findTrackerEndpointTCP();
 
     protected:
         /// Called after forming initial connection with a tracker
@@ -54,7 +60,10 @@ namespace network
         virtual void onRead() override;
 
     private:
-        /// Shared pointer to the torrent file being used
-        std::shared_ptr<TorrentFile> m_torrentFile;
+        /// Peer ID
+        const char *m_peerID;
+
+        /// Shared pointer to the torrent state
+        std::shared_ptr<TorrentState> m_torrentState;
     };
 }
