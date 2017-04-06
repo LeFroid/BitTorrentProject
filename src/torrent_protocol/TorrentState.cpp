@@ -28,11 +28,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 TorrentState::TorrentState(const std::string &torrentFilePath) :
     m_file(std::make_shared<TorrentFile>(torrentFilePath)),
-    m_pieceInfo(m_file->getNumPieces())
+    m_pieceInfo(m_file->getNumPieces()),
+    m_newPeers(),
+    m_knownPeers()
 {
 }
 
 std::shared_ptr<TorrentFile> &TorrentState::getTorrentFile()
 {
     return m_file;
+}
+
+void TorrentState::addPeerInfo(uint32_t ipAddr, uint16_t portNum)
+{
+    if (m_knownPeers.find(ipAddr) == m_knownPeers.end())
+        m_newPeers[ipAddr] = portNum;
 }

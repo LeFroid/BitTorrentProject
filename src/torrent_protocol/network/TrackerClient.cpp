@@ -23,6 +23,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <cstdint>
 #include "TrackerClient.h"
 
 #include "Decoder.h"
@@ -75,6 +76,44 @@ namespace network
         boost::asio::ip::tcp::resolver resolver(m_socket.get_io_service());
         boost::asio::ip::tcp::resolver::query query(host, port);
         return (*resolver.resolve(query));
+    }
+
+    void TrackerClient::parsePeerString(const std::string &peerStr)
+    {
+        // The string consists of multiples of 6 bytes. First 4 bytes are the IP address and last 2 bytes are the port number. All in network (big endian) notation.
+        std::string::size_type strIdx = 0;
+        const char *data = peerStr.c_str();
+
+        uint32_t tmpIP;
+        uint16_t tmpPort;
+        while (strIdx + 6 <= peerStr.size())
+        {
+            tmpIP = 0;
+            tmpPort = 0;
+
+            memcpy(&tmpIP, data, 4);
+            boost::endian::big_to_native_inplace(tmpIP);
+            data += 4;
+
+            memcpy(&tmpPort, data, 2);
+            boost::endian::big_to_native_inplace(tmpPort);
+            data += 2;
+
+            // Send info to TorrentState
+            m_torrentState->addPeerInfo(tmpIP, tmpPort);
+
+            strIdx += 6;
+        }
+    }
+
+    void TrackerClient::parsePeerList(BenList *peerList)
+    {
+        /*
+         * The given parameter is a list of dictionaries, each with the following keys:
+         *   peer id: peer's self-selected ID, as described above for the tracker request (string)
+         *   ip: peer's IP address either IPv6 (hexed) or IPv4 (dotted quad) or DNS name (string)
+         *   port: peer's port number (integer)
+         */
     }
 
     void TrackerClient::onConnect()
@@ -161,16 +200,18 @@ namespace network
              * tracker id: A string that the client should send back on its next announcements. If absent and a previous announce sent a tracker id, do not discard the old value; keep using it.
              * complete: number of peers with the entire file, i.e. seeders (integer)
              * incomplete: number of non-seeder peers, aka "leechers" (integer)
-             *
-             * peers: (dictionary model) The value is a list of dictionaries, each with the following keys:
-             *   peer id: peer's self-selected ID, as described above for the tracker request (string)
-             *   ip: peer's IP address either IPv6 (hexed) or IPv4 (dotted quad) or DNS name (string)
-             *   port: peer's port number (integer)
-             *
-             * peers: (binary model) Instead of using the dictionary model described above, the peers value may be a string consisting of multiples of 6 bytes. First 4 bytes are the IP address and last 2 bytes are the port number. All in network (big endian) notation.
              */
-
-            // send dictionary to torrent state
+            keyItr = dict->find("peers");
+            if (keyItr != dict->end())
+            {
+                // Get peer info into readable format - we requested compact mode so it should be a string. Otherwise should be a list
+                if (BenString *peerString = bencast<BenString*>(keyItr->second))
+                    parsePeerString(peerString->getValue());
+                else if (BenList *peerList = bencast<BenList*>(keyItr->second))
+                    parsePeerList(peerList);
+                else
+                    LOG_WARNING("torrent_protocol.network", "Unable to determine data type of peers response.");
+            }
         }
 
         LOG_DEBUG("torrent_protocol.test", "Response.Version = ", response.Version);

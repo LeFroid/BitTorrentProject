@@ -28,6 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include "Socket.h"
 
+namespace bencoding { class BenList; }
+
 class TorrentState;
 
 namespace network
@@ -51,6 +53,15 @@ namespace network
 
         /// Attempts to determine the endpoint of the tracker service, based on the Torrent File's announce URL
         boost::asio::ip::tcp::endpoint findTrackerEndpointTCP();
+
+    private:
+        /// Gets peer information from the given string, sending it in a more useful format to the TorrentState
+        /// object
+        void parsePeerString(const std::string &peerStr);
+
+        /// Gets peer information from the given bencoded list of dictionaries, sending it to the TorrentState
+        /// object.
+        void parsePeerList(bencoding::BenList *peerList);
 
     protected:
         /// Called after forming initial connection with a tracker
