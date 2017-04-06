@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "HashMapUtils.h"
 
-namespace network { class TrackerClient; }
+namespace network { class ConnectionMgr; class Listener; class TrackerClient; }
 
 class TorrentState;
 
@@ -87,4 +87,10 @@ private:
 
     /// Global peer id for client
     char m_peerID[20];
+
+    /// Peer connection manager
+    network::ConnectionMgr m_connectionMgr;
+
+    /// Incoming peer listener
+    network::Listener m_peerListener;
 };

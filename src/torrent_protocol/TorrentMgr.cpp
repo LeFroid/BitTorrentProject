@@ -29,6 +29,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "LogHelper.h"
 
+#include "ConnectionMgr.h"
+#include "Listener.h"
+
 #include "TorrentMgr.h"
 #include "TorrentState.h"
 #include "TorrentFile.h"
@@ -44,7 +47,9 @@ TorrentMgr::TorrentMgr() :
     m_torrentMap(),
     m_trackerClients(),
     m_trackerLock(),
-    m_trackerTimer(m_ioService)
+    m_trackerTimer(m_ioService),
+    m_connectionMgr(),
+    m_peerListener(m_ioService)
 {
     // Set peer ID
     memcpy(&m_peerID[0], &PeerNameVersion[0], 8);
