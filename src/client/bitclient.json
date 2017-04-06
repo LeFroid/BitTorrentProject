@@ -1,0 +1,6 @@
+{
+    "network":
+    {
+        "listen_port": 6881
+    }
+}

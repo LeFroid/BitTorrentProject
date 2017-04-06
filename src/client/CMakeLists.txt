@@ -20,6 +20,7 @@ file(GLOB_RECURSE client_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp *.h)
 
 add_executable(${client_EXEC}
     ${client_SRC}
+    bitclient.json
 )
 
 TARGET_LINK_LIBRARIES(${client_EXEC}
@@ -32,5 +33,19 @@ TARGET_LINK_LIBRARIES(${client_EXEC}
     ${OPENSSL_LIBRARIES}
     ${Boost_SYSTEM_LIBRARY}
 )
+
+if (UNIX)
+    install(TARGETS ${client_EXEC} DESTINATION bin COMPONENT binaries)
+    install(FILES bitclient.json DESTINATION etc COMPONENT config)
+    add_custom_target(copy-fonts ALL
+        COMMAND cmake -E copy_directory ${CMAKE_SOURCE_DIR}/Fonts ${CMAKE_INSTALL_PREFIX}/shared/bitclient/Fonts
+        DEPENDS ${client_EXEC})
+else()
+    install(TARGETS ${client_EXEC} COMPONENT binaries)
+    install(FILES bitclient.json COMPONENT config)
+    add_custom_target(copy-fonts ALL
+        COMMAND cmake -E copy_directory ${CMAKE_SOURCE_DIR}/Fonts ${CMAKE_INSTALL_PREFIX}/Fonts
+        DEPENDS ${client_EXEC})
+endif() 
 
 cotire(${client_EXEC})

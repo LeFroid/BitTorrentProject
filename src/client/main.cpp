@@ -1,7 +1,9 @@
+#include <boost/predef.h>
 #include <iostream>
 
 #include <SDL.h>
 
+#include "Configuration.h"
 #include "Engine.h"
 #include "LogHelper.h"
 
@@ -29,10 +31,19 @@ using namespace gui;
 // Log helper
 LogHelper sLog;
 
+// Platform-dependent definitions
+#if BOOST_OS_WINDOWS
+#  define CLIENT_CONFIG_DIR "./"
+#  define CLIENT_FONTS_DIR "./Fonts/"
+#else
+#  define CLIENT_CONFIG_DIR "../etc/"
+#  define CLIENT_FONTS_DIR "../shared/bitclient/Fonts/"
+#endif
+
 void loadResources()
 {
     // load fonts
-    FontStorage::getInstance()->loadFonts("../Fonts/");
+    FontStorage::getInstance()->loadFonts(CLIENT_FONTS_DIR);
 }
 
 int main(int argc, char **argv)
@@ -45,6 +56,9 @@ int main(int argc, char **argv)
         LOG_FATAL("client", "Graphics library has failed to initialize. SDL Error: ", SDL_GetError());
         return 1;
     }
+
+    // Load fonts
+    loadResources();
 
     // bencoding test
     Decoder decoder;
@@ -68,6 +82,15 @@ int main(int argc, char **argv)
     Encoder encoder;
     dict.accept(encoder);
     LOG_INFO("client", "encoded dictionary represented as: ", encoder.getData());
+
+    // Read from configuration file
+    Configuration config;
+    std::string configPath = CLIENT_CONFIG_DIR;
+    configPath.append("bitclient.json");
+    config.loadFile(configPath);
+    boost::optional<int> port = config.getValue<int>("network.listen_port");
+    if (port)
+        LOG_INFO("client", "port = ", *port);
 
     // Begin test on torrent file & tracker
     std::shared_ptr<TorrentState> testFile;

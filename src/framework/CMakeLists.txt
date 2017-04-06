@@ -6,7 +6,7 @@ include_directories(
   ${SDL2_GFX_INCLUDE_DIRS}
   ${SDL2_IMAGE_INCLUDE_DIRS}
   ${SDL2_TTF_INCLUDE_DIRS}
-  #  ${TinyXML_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIR}
 )
 
 file(GLOB gui_SRC "GUI" *.h *.cpp) 
