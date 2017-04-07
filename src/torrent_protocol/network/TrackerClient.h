@@ -26,6 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include <memory>
+#include "ConnectionMgr.h"
+#include "Peer.h"
 #include "Socket.h"
 
 namespace bencoding { class BenList; }
@@ -34,9 +36,6 @@ class TorrentState;
 
 namespace network
 {
-    class ConnectionMgr;
-    class Peer;
-
     /**
      * @class TrackerClient
      * @brief Handles communications with a tracker service

@@ -39,6 +39,9 @@ LogHelper sLog;
 #  define CLIENT_FONTS_DIR "../shared/bitclient/Fonts/"
 #endif
 
+std::string configFile = CLIENT_CONFIG_DIR + std::string("bitclient.json");
+TorrentMgr eTorrentMgr(configFile);
+
 void loadResources()
 {
     // load fonts
@@ -88,13 +91,13 @@ int main(int argc, char **argv)
 
     // Begin test on torrent file & tracker
     std::shared_ptr<TorrentState> testFile;
-    TorrentMgr mgr(configPath);
+    //TorrentMgr mgr(configPath);
     if (argc > 1)
     {
         std::string torrentFilePath(argv[1]);
-        testFile = mgr.addTorrent(torrentFilePath);
+        testFile = eTorrentMgr.addTorrent(torrentFilePath);
 
-        mgr.run();
+        eTorrentMgr.run();
 
         LOG_INFO("client", "Torrent file size = ", testFile->getTorrentFile()->getFileSize());
     }

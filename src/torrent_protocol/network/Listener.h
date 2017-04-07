@@ -23,7 +23,12 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#pragma once
+
 #include <cstdint>
+#include <memory>
+#include "ConnectionMgr.h"
+#include "Peer.h"
 #include "Socket.h"
 
 namespace network
@@ -36,16 +41,16 @@ namespace network
     class Listener
     {
     public:
-        /// Listener constructor - requires a reference to an io service, port number
-        /// and maximum number of connections to allow
+        /// Listener constructor - requires a reference to an io service
         explicit Listener(boost::asio::io_service &ioService);
 
         /**
          * @brief start Begins accepting incoming connections
          * @param port Port number
          * @param maxConnections The maximum number of pending connections to have queued at a time
+         * @param connectionMgr Shared pointer to the Peer connection manager
          */
-        void start(uint16_t port, int maxConnections);
+        void start(uint16_t port, int maxConnections, std::shared_ptr< ConnectionMgr<Peer> > connectionMgr);
 
     private:
         /// Accepts the next connection
@@ -57,5 +62,11 @@ namespace network
 
         /// TCP acceptor
         boost::asio::ip::tcp::acceptor m_acceptor;
+
+        /// Socket used for incoming connection
+        boost::asio::ip::tcp::socket m_socket;
+
+        /// Peer connection manager
+        std::shared_ptr< ConnectionMgr<Peer> > m_connectionMgr;
     };
 }

@@ -34,6 +34,12 @@ namespace network
     {
     }
 
+    Peer::Peer(boost::asio::ip::tcp::socket &&socket) :
+        Socket(std::move(socket)),
+        m_doneHandshake(false)
+    {
+    }
+
     void Peer::onConnect()
     {
         // Send handshake, following the format "<pstrlen><pstr><reserved><info_hash><peer_id>"

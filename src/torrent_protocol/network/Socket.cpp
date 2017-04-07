@@ -98,12 +98,12 @@ namespace network
 
         if (m_mode == Mode::TCP)
         {
-            m_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+            //m_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
             m_socket.close();
         }
         else
         {
-            m_udpSocket.shutdown(boost::asio::ip::udp::socket::shutdown_both);
+            //m_udpSocket.shutdown(boost::asio::ip::udp::socket::shutdown_both);
             m_udpSocket.close();
         }
     }

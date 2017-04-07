@@ -24,17 +24,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "Listener.h"
+#include "LogHelper.h"
 
 namespace network
 {
     Listener::Listener(boost::asio::io_service &ioService) :
         m_ioService(ioService),
-        m_acceptor(ioService)
+        m_acceptor(ioService),
+        m_socket(ioService),
+        m_connectionMgr(nullptr)
     {
     }
 
-    void Listener::start(uint16_t port, int maxConnections)
+    void Listener::start(uint16_t port, int maxConnections, std::shared_ptr< ConnectionMgr<Peer> > connectionMgr)
     {
+        m_connectionMgr = connectionMgr;
+
         boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), port);
         m_acceptor.open(endpoint.protocol());
         m_acceptor.bind(endpoint);
@@ -45,6 +50,26 @@ namespace network
 
     void Listener::accept()
     {
-        //todo
+        m_acceptor.async_accept(m_socket, [this](const boost::system::error_code &ec)
+        {
+            if (!ec)
+            {
+                m_socket.non_blocking(true);
+                auto conn = std::make_shared<Peer>(std::move(this->m_socket));
+
+                // Call read as peer is expected to immediately send their handshake
+                conn->read();
+
+                // Add to connection mgr
+                this->m_connectionMgr->addConnection(conn);
+
+                LOG_INFO("torrent_protocol.network", "Accepted new peer");
+
+                // Accept next peer
+                accept();
+            }
+            else
+                LOG_ERROR("torrent_protocol.network", "Error in Listener::accept handler - message: ", ec.message());
+        });
     }
 }

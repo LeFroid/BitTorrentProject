@@ -40,6 +40,9 @@ namespace network
         /// Constructs a new peer object, given a reference to an io_service
         explicit Peer(boost::asio::io_service &ioService, Socket::Mode mode);
 
+        /// Constructs a peer by moving the given tcp socket
+        Peer(boost::asio::ip::tcp::socket &&socket);
+
         //void requestPiece(uint64_t pieceNum);
 
     protected:

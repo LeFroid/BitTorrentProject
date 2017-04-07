@@ -67,11 +67,11 @@ public:
     std::shared_ptr<TorrentState> addTorrent(const std::string &torrentPath);
 
     /// Returns true if the client has a torrent file associated with the given infoHash, false if else.
-    bool hasTorrentFile(uint8_t *infoHash) const;
+    /// Used when a peer initiates a handshake with us
+    bool hasTorrentFile(uint8_t *infoHash);
 
-private:
-    /// Checks for stale connections between the client and a tracker service
-    void checkTrackerConnections(const boost::system::error_code &ec);
+    /// Returns the torrent state associated with the infoHash
+    std::shared_ptr<TorrentState> getTorrentState(uint8_t *infoHash);
 
 private:
     /// I/O service used for networking
@@ -85,6 +85,9 @@ private:
 
     /// Hash map of info_hashes to shared_ptr's of TorrentStates
     std::unordered_map< uint8_t*, std::shared_ptr<TorrentState>, DigestHasher, DigestCompare > m_torrentMap;
+
+    /// Lock used when accessing torrent map
+    std::mutex m_torrentLock;
 
     /// Global peer id for client
     char m_peerID[20];
@@ -101,3 +104,5 @@ private:
     /// Configuration data
     Configuration m_config;
 };
+
+extern TorrentMgr eTorrentMgr;

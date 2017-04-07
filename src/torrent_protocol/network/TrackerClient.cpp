@@ -33,9 +33,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "TorrentState.h"
 #include "URL.h"
 
-#include "ConnectionMgr.h"
-#include "Peer.h"
-
 #include "LogHelper.h"
 
 using namespace bencoding;

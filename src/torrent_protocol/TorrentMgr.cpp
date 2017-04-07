@@ -78,7 +78,7 @@ void TorrentMgr::run()
             auto listenPort = m_config.getValue<int>("network.listen_port");
             auto maxConnections = m_config.getValue<int>("network.max_pending_connections");
             if (listenPort && maxConnections)
-                m_peerListener.start(*listenPort, *maxConnections);
+                m_peerListener.start(*listenPort, *maxConnections, m_connectionMgr);
             this->m_ioService.run();
         }
     );
@@ -93,12 +93,16 @@ std::shared_ptr<TorrentState> TorrentMgr::addTorrent(const std::string &torrentP
     if (torrentRef->getFileSize() > 0)
     {
         // Add to map, begin download process, return shared_ptr
-        m_torrentMap[torrentRef->getInfoHash()] = retVal;
+        {
+            std::lock_guard<std::mutex> lock(m_torrentLock);
+            m_torrentMap[torrentRef->getInfoHash()] = retVal;
+        }
 
         // Instantiate tracker client
         auto trackerClient = std::make_shared<network::TrackerClient>(m_ioService, network::Socket::Mode::TCP);
         trackerClient->setPeerID(m_peerID);
         trackerClient->setTorrentState(retVal);
+        trackerClient->setConnectionMgr(m_connectionMgr);
 
         // Connect client to tracker service
         auto trackerEndpoint = trackerClient->findTrackerEndpointTCP();
@@ -113,7 +117,18 @@ std::shared_ptr<TorrentState> TorrentMgr::addTorrent(const std::string &torrentP
     return std::shared_ptr<TorrentState>(nullptr);
 }
 
-bool TorrentMgr::hasTorrentFile(uint8_t *infoHash) const
+bool TorrentMgr::hasTorrentFile(uint8_t *infoHash)
 {
+    std::lock_guard<std::mutex> lock(m_torrentLock);
     return (m_torrentMap.find(infoHash) != m_torrentMap.end());
+}
+
+std::shared_ptr<TorrentState> TorrentMgr::getTorrentState(uint8_t *infoHash)
+{
+    std::lock_guard<std::mutex> lock(m_torrentLock);
+    auto it = m_torrentMap.find(infoHash);
+    if (it != m_torrentMap.end())
+        return it->second;
+
+    return std::shared_ptr<TorrentState>(nullptr);
 }
