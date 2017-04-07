@@ -36,3 +36,12 @@ std::shared_ptr<TorrentFile> &TorrentState::getTorrentFile()
 {
     return m_file;
 }
+
+bool TorrentState::havePiece(uint64_t pieceIdx) const
+{
+    // Make sure index is valid
+    if (pieceIdx >= m_pieceInfo.size())
+        return false;
+
+    return m_pieceInfo[pieceIdx];
+}

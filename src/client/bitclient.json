@@ -3,5 +3,9 @@
     {
         "listen_port": 6881,
         "max_pending_connections": 100
+    },
+    "disk":
+    {
+        "download_dir": "./"
     }
 }

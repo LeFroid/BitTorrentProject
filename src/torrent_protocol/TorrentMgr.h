@@ -60,7 +60,6 @@ public:
     void run();
 
 public:
-
     /// Adds a torrent to the map of torrent files being downloaded. If the file
     /// associated with the given path is valid, the torrent file will begin downloading
     /// immediately.
@@ -72,6 +71,15 @@ public:
 
     /// Returns the torrent state associated with the infoHash
     std::shared_ptr<TorrentState> getTorrentState(uint8_t *infoHash);
+
+    /// Returns a pointer to the client's peer id
+    const char *getPeerID() const;
+
+    /// Returns the directory of which torrent files are to be downloaded
+    std::string getDownloadDirectory();
+
+    /// Sets the directory for torrent files to be downloaded into
+    void setDownloadDirectory(const std::string &dir);
 
 private:
     /// I/O service used for networking

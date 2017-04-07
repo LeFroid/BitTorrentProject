@@ -179,7 +179,7 @@ namespace network
     {
         if (ec)
         {
-            LOG_ERROR("torrent_protocol.network", "Error with Socket::connect(...), error message: ", ec.message());
+            LOG_WARNING("torrent_protocol.network", "Error with Socket::connect(...), error message: ", ec.message());
             close();
             return;
         }
@@ -195,7 +195,9 @@ namespace network
 
         if (ec)
         {
-            LOG_ERROR("torrent_protocol.network", "Error in Socket::handleRead, message: ", ec.message());
+            // Close connection regardless of error, only log if not EOF
+            if (ec != boost::asio::error::eof)
+                LOG_ERROR("torrent_protocol.network", "Error in Socket::handleRead, message: ", ec.message());
             close();
         }
 

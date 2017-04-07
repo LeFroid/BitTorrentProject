@@ -132,3 +132,20 @@ std::shared_ptr<TorrentState> TorrentMgr::getTorrentState(uint8_t *infoHash)
 
     return std::shared_ptr<TorrentState>(nullptr);
 }
+
+const char *TorrentMgr::getPeerID() const
+{
+    return m_peerID;
+}
+
+std::string TorrentMgr::getDownloadDirectory()
+{
+    if (auto dir = m_config.getValue<std::string>("disk.download_dir"))
+        return *dir;
+    return std::string();
+}
+
+void TorrentMgr::setDownloadDirectory(const std::string &dir)
+{
+    m_config.setValue<std::string>("disk.download_dir", dir);
+}

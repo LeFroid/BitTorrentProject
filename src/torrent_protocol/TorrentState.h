@@ -42,6 +42,14 @@ public:
     /// Returns a reference to the torrent file pointer
     std::shared_ptr<TorrentFile> &getTorrentFile();
 
+    /// Returns the index of the piece currently being downloaded (or about to be downloaded)
+    uint64_t getCurrentPieceNum() { return 0; }
+    // use piece selection algorithm to order pieces, push onto a stack, pop and return value here once the
+    // last selected piece has been downloaded in its entirety (invisible to the caller)
+
+    /// Returns true if the client has the given piece of the torrent data, false if else
+    bool havePiece(uint64_t pieceIdx) const;
+
 private:
     /// Shared pointer to the torrent file
     std::shared_ptr<TorrentFile> m_file;

@@ -25,7 +25,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <ctime>
 #include "Socket.h"
+
+class TorrentState;
 
 namespace network
 {
@@ -43,6 +46,9 @@ namespace network
         /// Constructs a peer by moving the given tcp socket
         Peer(boost::asio::ip::tcp::socket &&socket);
 
+        /// Sets the shared pointer to the torrent state for the p2p connection
+        void setTorrentState(std::shared_ptr<TorrentState> state);
+
         //void requestPiece(uint64_t pieceNum);
 
     protected:
@@ -53,7 +59,29 @@ namespace network
         virtual void onRead() override;
 
     private:
+        /// Handles the handshake message sent by the peer
+        void readHandshake();
+
+    private:
+        /// The timestamp of when the last message was received
+        time_t m_timeLastMessage;
+
+        /// True if the peer is choking the client, false if else
+        bool m_chokedBy;
+
+        /// True if the client is choking the peer, false if else
+        bool m_amChoking;
+
+        /// True if the peer is interested in the client, false if else
+        bool m_peerInterested;
+
+        /// True if the client is interested in the peer, false if else
+        bool m_amInterested;
+
         /// Used to determine if handshake has been performed
         std::atomic_bool m_doneHandshake;
+
+        /// Torrent state pointer
+        std::shared_ptr<TorrentState> m_torrentState;
     };
 }

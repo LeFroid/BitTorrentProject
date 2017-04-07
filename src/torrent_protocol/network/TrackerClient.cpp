@@ -107,7 +107,7 @@ namespace network
 
             // Send info to Connection Manager
             if (m_connectionMgr.get())
-                m_connectionMgr->attemptConnection(tmpIP, tmpPort);
+                m_connectionMgr->attemptConnection(tmpIP, tmpPort, m_torrentState);
 
             strIdx += 6;
         }

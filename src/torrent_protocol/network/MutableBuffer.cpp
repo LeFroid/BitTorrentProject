@@ -184,7 +184,7 @@ namespace network
     {
         // Check if there's enough space to write data into buffer
         if (getAvailableSpace() < length)
-            m_data.reserve(m_data.capacity() + length);
+            m_data.resize(m_data.capacity() + length);
 
         // Copy data into buffer, advance position
         std::memcpy(&m_data[m_writePos], data, length);

@@ -36,6 +36,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "LogHelper.h"
 #include "Socket.h"
 
+#include "TorrentState.h"
+
 namespace network
 {
     /**
@@ -69,8 +71,9 @@ namespace network
             m_connections.push_back(connection);
         }
 
-        /// Attempts to add a new SocketType which will connect to a remote endpoint given the IP address and port
-        void attemptConnection(uint32_t ipAddress, uint16_t port)
+        /// Attempts to add a new SocketType (Peer) which will connect to a remote endpoint given the IP address and port
+        /// Also passes the torrent state to the socket for peer handshake
+        void attemptConnection(uint32_t ipAddress, uint16_t port, std::shared_ptr<TorrentState> &torrentState)
         {
             boost::asio::ip::address_v4 ip(ipAddress);
             boost::asio::ip::tcp::endpoint connEndpoint(ip, port);
@@ -85,6 +88,7 @@ namespace network
             // Made it this far, add new connection
             LOG_INFO("torrent_protocol.network", "Attempting connection with endpoint ", ip.to_string(), ":", port);
             std::shared_ptr<SocketType> conn = std::make_shared<SocketType>(m_ioService, Socket::Mode::TCP);
+            conn->setTorrentState(torrentState);
             conn->connect(connEndpoint);
         }
 
