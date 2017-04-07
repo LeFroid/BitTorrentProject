@@ -33,6 +33,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "TorrentState.h"
 #include "URL.h"
 
+#include "ConnectionMgr.h"
+#include "Peer.h"
+
 #include "LogHelper.h"
 
 using namespace bencoding;
@@ -42,6 +45,7 @@ namespace network
     TrackerClient::TrackerClient(boost::asio::io_service &ioService, Socket::Mode mode) :
         Socket(ioService, mode),
         m_peerID(nullptr),
+        m_connectionMgr(),
         m_torrentState()
     {
     }
@@ -49,6 +53,11 @@ namespace network
     void TrackerClient::setPeerID(const char *peerID)
     {
         m_peerID = peerID;
+    }
+
+    void TrackerClient::setConnectionMgr(std::shared_ptr< ConnectionMgr<Peer> > connMgr)
+    {
+        m_connectionMgr = connMgr;
     }
 
     void TrackerClient::setTorrentState(std::shared_ptr<TorrentState> state)
@@ -99,8 +108,9 @@ namespace network
             boost::endian::big_to_native_inplace(tmpPort);
             data += 2;
 
-            // Send info to TorrentState
-            m_torrentState->addPeerInfo(tmpIP, tmpPort);
+            // Send info to Connection Manager
+            if (m_connectionMgr.get())
+                m_connectionMgr->attemptConnection(tmpIP, tmpPort);
 
             strIdx += 6;
         }

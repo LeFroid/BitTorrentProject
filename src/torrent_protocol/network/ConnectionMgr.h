@@ -24,37 +24,120 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <cstdint>
+
+#include <algorithm>
+#include <boost/asio.hpp>
+#include <functional>
 #include <memory>
 #include <vector>
 
+#include "LogHelper.h"
+#include "Socket.h"
+
 namespace network
 {
-    class Peer;
-
     /**
      * @class ConnectionMgr
-     * @brief Responsible for active peer-to-peer connections
+     * @brief Responsible for active connections of any Socket-based class
      */
+    template <class SocketType>
     class ConnectionMgr
     {
     public:
+        /// Constructor - requires IO service reference
+        ConnectionMgr(boost::asio::io_service &ioService) :
+            m_ioService(ioService),
+            m_connectionTimer(ioService),
+            m_connections()
+        {
+        }
+
         /// Begins the timer-based routine of checking for stale connections
-        void run();
+        void run()
+        {
+            m_connectionTimer.expires_from_now(boost::posix_time::seconds(5));
+            m_connectionTimer.async_wait(std::bind(&ConnectionMgr<SocketType>::checkForStaleConns, this, std::placeholders::_1));
+        }
 
     public:
-        /// Adds a peer to the list of active connections
-        void addPeer(std::shared_ptr<Peer> peer);
+        /// Adds a connection to the list of active connections
+        void addConnection(std::shared_ptr<SocketType> connection)
+        {
+            std::lock_guard<std::mutex> lock(m_connectionLock);
+            m_connections.push_back(connection);
+        }
+
+        /// Attempts to add a new SocketType which will connect to a remote endpoint given the IP address and port
+        void attemptConnection(uint32_t ipAddress, uint16_t port)
+        {
+            boost::asio::ip::address_v4 ip(ipAddress);
+            boost::asio::ip::tcp::endpoint connEndpoint(ip, port);
+
+            // When this method is specifically called, we should check if there is already
+            // a connection with the same endpoint
+            std::lock_guard<std::mutex> lock(m_connectionLock);
+            for (auto conn : m_connections)
+                if (conn->getTCPEndpoint() == connEndpoint)
+                    return;
+
+            // Made it this far, add new connection
+            LOG_INFO("torrent_protocol.network", "Attempting connection with endpoint ", ip.to_string(), ":", port);
+            std::shared_ptr<SocketType> conn = std::make_shared<SocketType>(m_ioService, Socket::Mode::TCP);
+            conn->connect(connEndpoint);
+        }
+
+        /// Attempts to create a new SocketType which will connect to the givne TCP endpoint
+        void attemptConnection(boost::asio::ip::tcp::endpoint &endpoint)
+        {
+            std::shared_ptr<SocketType> conn = std::make_shared<SocketType>(m_ioService, Socket::Mode::TCP);
+            conn->connect(endpoint);
+
+            std::lock_guard<std::mutex> lock(m_connectionLock);
+            m_connections.push_back(conn);
+        }
 
         /// Returns the number of peers which the client is connected to
-        size_t getNumPeers() const;
+        size_t getNumConnected() const
+        {
+            std::lock_guard<std::mutex> lock(m_connectionLock);
+            return m_connections.size();
+        }
 
     private:
-        /// Iterates through the container of pointers to peers, checking
+        /// Iterates through the container of pointers to Sockets, checking
         /// if any connections have gone stale, and if so, removing them.
-        void checkForStaleConns();
+        void checkForStaleConns(const boost::system::error_code &ec)
+        {
+            if (ec)
+            {
+                LOG_ERROR("torrent_protocol.network", "Error in ConnectionMgr::checkForStaleConns. Message: ", ec.message());
+                return;
+            }
+
+            std::lock_guard<std::mutex> lock(m_connectionLock);
+            m_connections.erase(std::remove_if(m_connections.begin(), m_connections.end(), [this](std::shared_ptr<SocketType> connection)
+            {
+                if (connection.get() && connection->isClosing())
+                    return true;
+                return false;
+            }), m_connections.end());
+
+            // Reset timer
+            m_connectionTimer.expires_from_now(boost::posix_time::seconds(5));
+            m_connectionTimer.async_wait(std::bind(&ConnectionMgr<SocketType>::checkForStaleConns, this, std::placeholders::_1));
+        }
 
     private:
-        /// Container for active peer connections
-        std::vector< std::shared_ptr<Peer> > m_connections;
+        /// IO Service reference
+        boost::asio::io_service &m_ioService;
+
+        /// Timer used to check for stale connections
+        boost::asio::deadline_timer m_connectionTimer;
+
+        /// Container for active connections
+        std::vector< std::shared_ptr<SocketType> > m_connections;
+
+        /// Lock for access to connection container
+        std::mutex m_connectionLock;
     };
 }

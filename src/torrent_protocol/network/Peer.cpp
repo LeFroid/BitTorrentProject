@@ -28,8 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace network
 {
-    Peer::Peer(boost::asio::io_service &ioService) :
-        Socket(ioService, Socket::Mode::TCP),
+    Peer::Peer(boost::asio::io_service &ioService, Mode mode) :
+        Socket(ioService, mode),
         m_doneHandshake(false)
     {
     }

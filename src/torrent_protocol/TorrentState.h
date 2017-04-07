@@ -42,10 +42,6 @@ public:
     /// Returns a reference to the torrent file pointer
     std::shared_ptr<TorrentFile> &getTorrentFile();
 
-    /// Adds the IP address and port number of a peer to the map of new peers,
-    /// if applicable.
-    void addPeerInfo(uint32_t ipAddr, uint16_t portNum);
-
 private:
     /// Shared pointer to the torrent file
     std::shared_ptr<TorrentFile> m_file;
@@ -53,12 +49,6 @@ private:
     /// Bitset representing pieces of the torrent that have or haven't yet been
     /// downloaded. 1 = Downloaded, 0 = Not Downloaded
     boost::dynamic_bitset<> m_pieceInfo;
-
-    /// Map of new peers (no connection attempted yet). Key = IP, Value = Port
-    std::unordered_map<uint32_t, uint16_t> m_newPeers;
-
-    /// Map of known peers. Key = IP, Value = Port
-    std::unordered_map<uint32_t, uint16_t> m_knownPeers;
 
     //std::ofstream m_diskFile; -- figure out multi file mode downloads
 };

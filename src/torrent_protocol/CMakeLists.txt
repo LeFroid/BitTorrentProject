@@ -19,4 +19,6 @@ add_library(${torrent_LIB} STATIC
   ${torrent_SRC}
 )
 
+target_link_libraries(${torrent_LIB} ${framework_LIB})
+
 cotire(${torrent_LIB})

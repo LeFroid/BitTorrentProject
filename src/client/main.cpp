@@ -3,7 +3,6 @@
 
 #include <SDL.h>
 
-#include "Configuration.h"
 #include "Engine.h"
 #include "LogHelper.h"
 
@@ -83,18 +82,13 @@ int main(int argc, char **argv)
     dict.accept(encoder);
     LOG_INFO("client", "encoded dictionary represented as: ", encoder.getData());
 
-    // Read from configuration file
-    Configuration config;
+    // Get configuration file path
     std::string configPath = CLIENT_CONFIG_DIR;
     configPath.append("bitclient.json");
-    config.loadFile(configPath);
-    boost::optional<int> port = config.getValue<int>("network.listen_port");
-    if (port)
-        LOG_INFO("client", "port = ", *port);
 
     // Begin test on torrent file & tracker
     std::shared_ptr<TorrentState> testFile;
-    TorrentMgr mgr;
+    TorrentMgr mgr(configPath);
     if (argc > 1)
     {
         std::string torrentFilePath(argv[1]);

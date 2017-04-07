@@ -31,17 +31,27 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <thread>
 #include <unordered_map>
 
-#include "HashMapUtils.h"
+#include "Configuration.h"
+#include "ConnectionMgr.h"
+#include "Listener.h"
+#include "Peer.h"
+#include "TorrentState.h"
+#include "TrackerClient.h"
 
-namespace network { class ConnectionMgr; class Listener; class TrackerClient; }
+#include "HashMapUtils.h"
 
 class TorrentState;
 
+/**
+ * @class TorrentMgr
+ * @brief Responsible for asynchronous transfer of torrent files between client
+ *        and peers.
+ */
 class TorrentMgr
 {
 public:
     /// TorrentMgr constructor
-    TorrentMgr();
+    TorrentMgr(const std::string &configFile);
 
     /// TorrentMgr destructor
     ~TorrentMgr();
@@ -76,21 +86,18 @@ private:
     /// Hash map of info_hashes to shared_ptr's of TorrentStates
     std::unordered_map< uint8_t*, std::shared_ptr<TorrentState>, DigestHasher, DigestCompare > m_torrentMap;
 
-    /// Container of tracker clients being used to get peer information
-    std::vector< std::shared_ptr<network::TrackerClient> > m_trackerClients;
-
-    /// Lock for access to tracker client container
-    std::mutex m_trackerLock;
-
-    /// Timer used to check for stale tracker client connections
-    boost::asio::deadline_timer m_trackerTimer;
-
     /// Global peer id for client
     char m_peerID[20];
 
     /// Peer connection manager
-    network::ConnectionMgr m_connectionMgr;
+    std::shared_ptr< network::ConnectionMgr<network::Peer> > m_connectionMgr;
+
+    /// Tracker connection manager
+    network::ConnectionMgr<network::TrackerClient> m_trackerMgr;
 
     /// Incoming peer listener
     network::Listener m_peerListener;
+
+    /// Configuration data
+    Configuration m_config;
 };

@@ -34,6 +34,9 @@ class TorrentState;
 
 namespace network
 {
+    class ConnectionMgr;
+    class Peer;
+
     /**
      * @class TrackerClient
      * @brief Handles communications with a tracker service
@@ -46,6 +49,9 @@ namespace network
 
         /// Sets the Peer ID that will be transmitted to the tracker service
         void setPeerID(const char *peerID);
+
+        /// Sets the shared pointer to the peer connection manager - used to connect to potential peers
+        void setConnectionMgr(std::shared_ptr< ConnectionMgr<Peer> > connMgr);
 
         /// Sets the tracker client's shared_ptr to the Torrent State object
         /// which will be used to request peer information
@@ -73,6 +79,9 @@ namespace network
     private:
         /// Peer ID
         const char *m_peerID;
+
+        /// Shared pointer to the connection manager
+        std::shared_ptr< ConnectionMgr<Peer> > m_connectionMgr;
 
         /// Shared pointer to the torrent state
         std::shared_ptr<TorrentState> m_torrentState;

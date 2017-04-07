@@ -29,32 +29,28 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "LogHelper.h"
 
-#include "ConnectionMgr.h"
-#include "Listener.h"
-
 #include "TorrentMgr.h"
-#include "TorrentState.h"
 #include "TorrentFile.h"
-
-#include "TrackerClient.h"
 
 const char *PeerNameVersion = "-BTP001-";
 
-TorrentMgr::TorrentMgr() :
+TorrentMgr::TorrentMgr(const std::string &configFile) :
     m_ioService(),
     m_signalSet(m_ioService, SIGINT, SIGTERM),
     m_ioThread(),
     m_torrentMap(),
-    m_trackerClients(),
-    m_trackerLock(),
-    m_trackerTimer(m_ioService),
-    m_connectionMgr(),
-    m_peerListener(m_ioService)
+    m_connectionMgr(std::make_shared< network::ConnectionMgr<network::Peer> >(m_ioService)),
+    m_trackerMgr(m_ioService),
+    m_peerListener(m_ioService),
+    m_config()
 {
     // Set peer ID
     memcpy(&m_peerID[0], &PeerNameVersion[0], 8);
     for (int i = 8; i < 20; ++i)
         m_peerID[i] = rand() % 256;
+
+    // Load configuration file
+    m_config.loadFile(configFile);
 }
 
 TorrentMgr::~TorrentMgr()
@@ -74,9 +70,15 @@ void TorrentMgr::run()
             // Tell signal set to halt io service when caught
             this->m_signalSet.async_wait(std::bind(&boost::asio::io_service::stop, &m_ioService));
 
-            // Begin timer to check for stale tracker connections
-            this->m_trackerTimer.expires_from_now(boost::posix_time::seconds(5));
-            this->m_trackerTimer.async_wait(std::bind(&TorrentMgr::checkTrackerConnections, this, std::placeholders::_1));
+            // Run tracker connection manager and peer connection manager
+            m_trackerMgr.run();
+            m_connectionMgr->run();
+
+            // Start tcp listener
+            auto listenPort = m_config.getValue<int>("network.listen_port");
+            auto maxConnections = m_config.getValue<int>("network.max_pending_connections");
+            if (listenPort && maxConnections)
+                m_peerListener.start(*listenPort, *maxConnections);
             this->m_ioService.run();
         }
     );
@@ -102,11 +104,9 @@ std::shared_ptr<TorrentState> TorrentMgr::addTorrent(const std::string &torrentP
         auto trackerEndpoint = trackerClient->findTrackerEndpointTCP();
         trackerClient->connect(trackerEndpoint);
 
-        // Push tracker client into container, return torrent state
-        {
-            std::lock_guard<std::mutex> lock(m_trackerLock);
-            m_trackerClients.push_back(trackerClient);
-        }
+        // Add tracker client to its connection manager
+        m_trackerMgr.addConnection(trackerClient);
+
         return retVal;
     }
 
@@ -116,26 +116,4 @@ std::shared_ptr<TorrentState> TorrentMgr::addTorrent(const std::string &torrentP
 bool TorrentMgr::hasTorrentFile(uint8_t *infoHash) const
 {
     return (m_torrentMap.find(infoHash) != m_torrentMap.end());
-}
-
-void TorrentMgr::checkTrackerConnections(const boost::system::error_code &ec)
-{
-    if (ec)
-    {
-        LOG_WARNING("torrent_protocol.asio", "Error in TorrentMgr::checkTrackerConnections timer, message: ", ec.message());
-        return;
-    }
-
-    std::lock_guard<std::mutex> lock(m_trackerLock);
-    m_trackerClients.erase(std::remove_if(m_trackerClients.begin(), m_trackerClients.end(), [this](std::shared_ptr<network::TrackerClient> client)
-    {
-        if (client.get())
-            if (client->isClosing())
-                return true;
-        return false;
-    }), m_trackerClients.end());
-
-    // Reset timer
-    m_trackerTimer.expires_from_now(boost::posix_time::seconds(5));
-    m_trackerTimer.async_wait(std::bind(&TorrentMgr::checkTrackerConnections, this, std::placeholders::_1));
 }

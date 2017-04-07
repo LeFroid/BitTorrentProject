@@ -141,29 +141,19 @@ namespace network
         sendNextItem();
     }
 
-    boost::asio::ip::address Socket::getAddress() const
+    boost::asio::ip::tcp::endpoint Socket::getTCPEndpoint() const
     {
-        // UDP
-        if (m_mode == Mode::UDP)
-            return m_udpSocket.remote_endpoint().address();
+        return m_socket.remote_endpoint();
+    }
 
-        // TCP
-        return m_socket.remote_endpoint().address();
+    boost::asio::ip::udp::endpoint Socket::getUDPEndpoint() const
+    {
+        return m_udpSocket.remote_endpoint();
     }
 
     const Socket::Mode &Socket::getMode() const
     {
         return m_mode;
-    }
-
-    uint16_t Socket::getPort() const
-    {
-        // UDP
-        if (m_mode == Mode::UDP)
-            return m_udpSocket.remote_endpoint().port();
-
-        // TCP
-        return m_socket.remote_endpoint().port();
     }
 
     void Socket::sendNextItem()

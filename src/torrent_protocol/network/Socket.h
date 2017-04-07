@@ -86,14 +86,14 @@ namespace network
         /// Moves the buffer into the queue to be sent out
         void send(MutableBuffer &&buffer);
 
-        /// Returns the IP address associated with the endpoint
-        boost::asio::ip::address getAddress() const;
+        /// Returns the remote TCP endpoint of the socket
+        boost::asio::ip::tcp::endpoint getTCPEndpoint() const;
+
+        /// Returns the remote UDP endpoint of the socket
+        boost::asio::ip::udp::endpoint getUDPEndpoint() const;
 
         /// Returns the mode of operation
         const Mode &getMode() const;
-
-        /// Returns the port associated with the endpoint
-        uint16_t getPort() const;
 
     protected:
         /// Called during handleConnect(..) if connection has been made successfully
