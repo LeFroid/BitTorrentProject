@@ -62,6 +62,9 @@ public:
     /// Returns the total number of pieces that make up the file
     const uint64_t &getNumPieces() const;
 
+    /// Returns the number of bytes in each piece of the file (final piece be of a different length)
+    uint64_t getPieceLength();
+
 private:
     /// Parses the torrent file with the given path, storing the decoded data into the meta info dictionary
     void parseFile(const std::string &path);

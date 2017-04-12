@@ -81,6 +81,19 @@ const uint64_t &TorrentFile::getNumPieces() const
     return m_numPieces;
 }
 
+uint64_t TorrentFile::getPieceLength()
+{
+    if (BenDictionary *infoDict = getInfoDictionary())
+    {
+        auto it = infoDict->find("piece length");
+        if (it != infoDict->end())
+            return bencast<BenInt*>(it->second)->getValue();
+    }
+    
+    LOG_ERROR("torrent_protocol.TorrentFile", "Unable to fetch piece length");
+    return 0;
+}
+
 void TorrentFile::parseFile(const std::string &path)
 {
     std::ifstream file(path, std::ifstream::in | std::ifstream::binary);
