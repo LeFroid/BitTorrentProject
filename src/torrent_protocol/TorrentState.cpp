@@ -28,7 +28,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 TorrentState::TorrentState(const std::string &torrentFilePath) :
     m_file(std::make_shared<TorrentFile>(torrentFilePath)),
-    m_pieceInfo(m_file->getNumPieces())
+    m_pieceInfo(m_file->getNumPieces()),
+    m_piecesAvailable(m_file->getNumPieces()),
+    m_currentPiece(0),
+    m_downloadComplete(false)
 {
 }
 
@@ -37,11 +40,54 @@ std::shared_ptr<TorrentFile> &TorrentState::getTorrentFile()
     return m_file;
 }
 
-bool TorrentState::havePiece(uint64_t pieceIdx) const
+const uint32_t &TorrentState::getCurrentPieceNum()
+{
+    // First check if current piece has finished downloading
+    if ((!m_downloadComplete && m_pieceInfo[m_currentPiece])
+            || !m_piecesAvailable[m_currentPiece])
+        m_currentPiece = determineNextPiece();
+
+    return m_currentPiece;
+}
+
+bool TorrentState::havePiece(uint32_t pieceIdx) const
 {
     // Make sure index is valid
     if (pieceIdx >= m_pieceInfo.size())
         return false;
 
     return m_pieceInfo[pieceIdx];
+}
+
+void TorrentState::markPieceAvailable(uint32_t pieceIdx)
+{
+    // Make sure index is valid
+    if (pieceIdx >= m_piecesAvailable.size())
+        return;
+
+    m_piecesAvailable[pieceIdx] = true;
+}
+
+void TorrentState::readPeerBitset(const boost::dynamic_bitset<> &set)
+{
+    m_piecesAvailable |= set;
+}
+
+uint32_t TorrentState::determineNextPiece()
+{
+    //TODO: First piece == randomly chosen, after that use rarest first algorithm
+    uint32_t retVal = 0;
+    auto numPieces = m_pieceInfo.size();
+
+    boost::dynamic_bitset<> piecesToChoose = (m_piecesAvailable & (~m_pieceInfo));
+    if (!piecesToChoose.any())
+        return numPieces + 1;
+
+    while (true)
+    {
+        retVal = uint64_t(rand()) % numPieces;
+        if (piecesToChoose[retVal])
+            return retVal;
+    }
+    return numPieces + 1;
 }

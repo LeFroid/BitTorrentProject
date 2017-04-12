@@ -24,6 +24,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <cstring>
+#include <ctime>
+
 #include <algorithm>
 #include <functional>
 
@@ -44,6 +46,8 @@ TorrentMgr::TorrentMgr(const std::string &configFile) :
     m_peerListener(m_ioService),
     m_config()
 {
+    srand(time(nullptr));
+
     // Set peer ID
     memcpy(&m_peerID[0], &PeerNameVersion[0], 8);
     for (int i = 8; i < 20; ++i)

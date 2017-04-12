@@ -25,6 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <boost/dynamic_bitset.hpp>
 #include <ctime>
 #include "Socket.h"
 
@@ -58,11 +59,23 @@ namespace network
         /// Called after a successful read operation
         virtual void onRead() override;
 
+    /// Functions to handle incoming data
     private:
         /// Handles the handshake message sent by the peer
         void readHandshake();
 
+        /// Handles the bitfield message and contents sent by the peer
+        void readBitfield(uint32_t length);
+
+    /// Functions to handle sending of data
     private:
+        /// Sends the client's handshake to the peer
+        void sendHandshake();
+
+    private:
+        /// The peer's identifier
+        char m_peerID[20];
+
         /// The timestamp of when the last message was received
         time_t m_timeLastMessage;
 
@@ -78,8 +91,14 @@ namespace network
         /// True if the client is interested in the peer, false if else
         bool m_amInterested;
 
-        /// Used to determine if handshake has been performed
-        std::atomic_bool m_doneHandshake;
+        /// Used to determine if handshake has been received from the remote peer
+        bool m_recvdHandshake;
+
+        /// Used to determine if handshake has been sent by the client
+        bool m_sentHandshake;
+
+        /// Bitset representing the pieces of the torrent file this peer has
+        boost::dynamic_bitset<> m_piecesHave;
 
         /// Torrent state pointer
         std::shared_ptr<TorrentState> m_torrentState;

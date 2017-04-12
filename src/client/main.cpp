@@ -103,6 +103,7 @@ int main(int argc, char **argv)
         auto announceURL = torrentPtr->getAnnounceURL();
         LOG_INFO("client.test", "Torrent file size = ", torrentPtr->getFileSize());
         LOG_INFO("client.test", "Announce URL from torrent file: ", announceURL.getHost(), '/', announceURL.getPageName());
+        LOG_INFO("client.test", "There are ", torrentPtr->getNumPieces(), " pieces in the file");
     }
     // End test on torrent file & tracker
 

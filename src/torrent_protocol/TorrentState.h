@@ -29,7 +29,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <boost/dynamic_bitset.hpp>
 #include <cstdint>
 #include <memory>
-#include <unordered_map>
 
 class TorrentFile;
 
@@ -43,12 +42,28 @@ public:
     std::shared_ptr<TorrentFile> &getTorrentFile();
 
     /// Returns the index of the piece currently being downloaded (or about to be downloaded)
-    uint64_t getCurrentPieceNum() { return 0; }
+    const uint32_t &getCurrentPieceNum();
     // use piece selection algorithm to order pieces, push onto a stack, pop and return value here once the
     // last selected piece has been downloaded in its entirety (invisible to the caller)
 
     /// Returns true if the client has the given piece of the torrent data, false if else
-    bool havePiece(uint64_t pieceIdx) const;
+    bool havePiece(uint32_t pieceIdx) const;
+
+    /// Sets the flag for the piece at the given index as being available for downloading from a peer
+    void markPieceAvailable(uint32_t pieceIdx);
+
+    /// Reads the bitset from a peer of pieces they do or dont have, setting the set of available
+    /// pieces to the union of the currently available pieces and the peer's pieces
+    void readPeerBitset(const boost::dynamic_bitset<> &set);
+
+    //note to self:
+    // when a piece is downloaded, set m_downloadComplete to m_pieceInfo.all() (true if all bits are set)
+
+private:
+    /// Based on the pieces already downloaded, and the pieces that are avaialable, returns the index of the
+    /// next piece that should be downloaded. If the download is already finished, or there are no peers
+    /// that have any pieces needed by the client, returns the total number of pieces + 1
+    uint32_t determineNextPiece();
 
 private:
     /// Shared pointer to the torrent file
@@ -57,6 +72,15 @@ private:
     /// Bitset representing pieces of the torrent that have or haven't yet been
     /// downloaded. 1 = Downloaded, 0 = Not Downloaded
     boost::dynamic_bitset<> m_pieceInfo;
+
+    /// Bitset which is the union of peer's bitsets representing the pieces they have
+    boost::dynamic_bitset<> m_piecesAvailable;
+
+    /// Current piece either being downloaded or about to be downloaded
+    uint32_t m_currentPiece;
+
+    /// True if download is complete, false if else
+    bool m_downloadComplete;
 
     //std::ofstream m_diskFile; -- figure out multi file mode downloads
 };

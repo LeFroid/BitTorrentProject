@@ -23,6 +23,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <boost/dynamic_bitset.hpp>
 #include <cstdint>
 #include "Peer.h"
 #include "TorrentMgr.h"
@@ -37,7 +38,9 @@ namespace network
         m_amChoking(true),
         m_peerInterested(false),
         m_amInterested(false),
-        m_doneHandshake(false),
+        m_recvdHandshake(false),
+        m_sentHandshake(false),
+        m_piecesHave(),
         m_torrentState()
     {
     }
@@ -48,7 +51,9 @@ namespace network
         m_amChoking(true),
         m_peerInterested(false),
         m_amInterested(false),
-        m_doneHandshake(false),
+        m_recvdHandshake(false),
+        m_sentHandshake(false),
+        m_piecesHave(),
         m_torrentState()
     {
     }
@@ -56,6 +61,7 @@ namespace network
     void Peer::setTorrentState(std::shared_ptr<TorrentState> state)
     {
         m_torrentState = state;
+        m_piecesHave.resize(m_torrentState->getTorrentFile()->getNumPieces());
     }
 
     void Peer::onConnect()
@@ -63,23 +69,8 @@ namespace network
         if (!m_torrentState.get())
             return;
 
-        // Send handshake, following the format "<pstrlen><pstr><reserved><info_hash><peer_id>"
-        auto endpoint = getTCPEndpoint();
-        LOG_DEBUG("torrent_protocol.network", "Sending handshake to peer with endpoint ", endpoint.address().to_string(), ':', endpoint.port());
-
-        uint8_t pstrlen = 19;
-        char pstr[20] = "BitTorrent protocol";
-        uint64_t reserved = 0;
-
-        MutableBuffer mb(1 + pstrlen + 8 + 20 + 20);
-        mb << pstrlen;
-        mb.write(pstr, pstrlen);
-        mb << reserved;
-        mb.write((const char*)m_torrentState->getTorrentFile()->getInfoHash(), 20);
-        mb.write(eTorrentMgr.getPeerID(), 20);
-
-        // Send handshake, read from peer
-        send(std::move(mb));
+        // Send handshake and read from peer
+        sendHandshake();
         read();
     }
 
@@ -88,8 +79,8 @@ namespace network
         // Update time of last message received
         time(&m_timeLastMessage);
 
-        // Handle handshake before any other message
-        if (!m_doneHandshake.load())
+        // Handle handshake before any other messages
+        if (!m_recvdHandshake)
         {
             readHandshake();
             return;
@@ -110,7 +101,7 @@ namespace network
         uint8_t messageID;
         m_bufferRead >> messageID;
 
-        // Handle message
+        // Handle message (TODO: messages 6 through 9)
         switch (messageID)
         {
             // Choke [no payload]
@@ -136,10 +127,17 @@ namespace network
             // Have: <len=0005><id=4><piece index>
             case 4:
                 LOG_DEBUG("torrent_protocol.network", "Have message received by peer");
+                uint32_t pieceIdx;
+                m_bufferRead >> pieceIdx;
+                m_torrentState->markPieceAvailable(pieceIdx);
                 break;
             // Bitfield: <len=0001+X><id=5><bitfield>
             case 5:
-                LOG_DEBUG("torrent_protocol.network", "Bitfield received by peer");
+                LOG_DEBUG("torrent_protocol.network", "Bitfield received by peer, length ", length - 1);
+                if (m_bufferRead.getSizeUnread() < length - 1) // Make sure all of the data was sent first
+                    readBitfield(length - 1);
+                else
+                    m_bufferRead.reverseReadPosition(5);       // Reverse position back to length prefix if waiting on data
                 break;
             // Request: <len=0013><id=6><index><begin><length>
             case 6:
@@ -182,15 +180,73 @@ namespace network
         uint8_t infoHash[20];
         memcpy(infoHash, m_bufferRead.getReadPointer(), 20);
 
+        // Drop connection if we do not have the torrent file being requested
         if (!eTorrentMgr.hasTorrentFile(infoHash))
         {
             close();
             return;
         }
 
-        // Ignore peer_id for the time being
-        m_bufferRead.advanceReadPosition(20 + 20);
-        m_doneHandshake.store(true);
+        // Advance past info hash, read peer ID (sent to TorrentState to associate peer id's with the pieces they have)
+        m_bufferRead.advanceReadPosition(20);
+        memcpy(m_peerID, m_bufferRead.getReadPointer(), 20);
+        m_bufferRead.advanceReadPosition(20);
+
+        // Set received handshake to true, send our handshake if it has not yet been sent
+        m_recvdHandshake = true;
+        if (!m_sentHandshake)
+            sendHandshake();
+
+        // Continue to read data from peer
         read();
+    }
+
+    void Peer::readBitfield(uint32_t length)
+    {
+        // Bounds check already performed on raw buffer
+        char *rawBuffer = m_bufferRead.getReadPointer();
+
+        // Populate the peer's bitset with data that was just received
+        auto fieldSize = m_piecesHave.size();
+        for (uint32_t i = 0; i < length; ++i)
+        {
+            m_piecesHave[fieldSize - i - 1] = (*rawBuffer & char(0x80));
+            m_piecesHave[fieldSize - i - 2] = (*rawBuffer & char(0x40));
+            m_piecesHave[fieldSize - i - 3] = (*rawBuffer & char(0x20));
+            m_piecesHave[fieldSize - i - 4] = (*rawBuffer & char(0x10));
+            m_piecesHave[fieldSize - i - 5] = (*rawBuffer & char(0x08));
+            m_piecesHave[fieldSize - i - 6] = (*rawBuffer & char(0x04));
+            m_piecesHave[fieldSize - i - 7] = (*rawBuffer & char(0x02));
+            m_piecesHave[fieldSize - i - 8] = (*rawBuffer & char(0x01));
+            ++rawBuffer;
+        }
+
+        // Advance position in read buffer
+        m_bufferRead.advanceReadPosition(length);
+
+        // Inform TorrentState of the pieces this peer has
+        m_torrentState->readPeerBitset(m_piecesHave);
+    }
+
+    void Peer::sendHandshake()
+    {
+        // Handshake is of the format "<pstrlen><pstr><reserved><info_hash><peer_id>"
+        auto endpoint = getTCPEndpoint();
+        LOG_DEBUG("torrent_protocol.network", "Sending handshake to peer with endpoint ", endpoint.address().to_string(), ':', endpoint.port());
+
+        uint8_t pstrlen = 19;
+        char pstr[20] = "BitTorrent protocol";
+        uint64_t reserved = 0;
+
+        MutableBuffer mb(1 + pstrlen + 8 + 20 + 20);
+        mb << pstrlen;
+        mb.write(pstr, pstrlen);
+        mb << reserved;
+        mb.write((const char*)m_torrentState->getTorrentFile()->getInfoHash(), 20);
+        mb.write(eTorrentMgr.getPeerID(), 20);
+
+        // Send handshake
+        m_sentHandshake = true;
+        send(std::move(mb));
     }
 }
