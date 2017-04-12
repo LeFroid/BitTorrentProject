@@ -217,16 +217,16 @@ namespace network
 
         // Populate the peer's bitset with data that was just received
         auto fieldSize = m_piecesHave.size();
-        for (uint32_t i = 0; i < length; ++i)
+        for (uint32_t i = 0; i < 8 * length; i += 8)
         {
-            m_piecesHave[fieldSize - i - 1] = (*rawBuffer & char(0x80));
-            m_piecesHave[fieldSize - i - 2] = (*rawBuffer & char(0x40));
-            m_piecesHave[fieldSize - i - 3] = (*rawBuffer & char(0x20));
-            m_piecesHave[fieldSize - i - 4] = (*rawBuffer & char(0x10));
-            m_piecesHave[fieldSize - i - 5] = (*rawBuffer & char(0x08));
-            m_piecesHave[fieldSize - i - 6] = (*rawBuffer & char(0x04));
-            m_piecesHave[fieldSize - i - 7] = (*rawBuffer & char(0x02));
-            m_piecesHave[fieldSize - i - 8] = (*rawBuffer & char(0x01));
+            m_piecesHave[i]     = (*rawBuffer & char(0x80));
+            m_piecesHave[i + 1] = (*rawBuffer & char(0x40));
+            m_piecesHave[i + 2] = (*rawBuffer & char(0x20));
+            m_piecesHave[i + 3] = (*rawBuffer & char(0x10));
+            m_piecesHave[i + 4] = (*rawBuffer & char(0x08));
+            m_piecesHave[i + 5] = (*rawBuffer & char(0x04));
+            m_piecesHave[i + 6] = (*rawBuffer & char(0x02));
+            m_piecesHave[i + 7] = (*rawBuffer & char(0x01));
             ++rawBuffer;
         }
 
