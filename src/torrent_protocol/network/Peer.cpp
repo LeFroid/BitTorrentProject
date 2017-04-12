@@ -186,6 +186,11 @@ namespace network
             close();
             return;
         }
+        else if (!m_torrentState.get())
+        {
+            // If not already set, get the TorrentState pointer
+            m_torrentState = eTorrentMgr.getTorrentState(infoHash);
+        }
 
         // Advance past info hash, read peer ID (sent to TorrentState to associate peer id's with the pieces they have)
         m_bufferRead.advanceReadPosition(20);
