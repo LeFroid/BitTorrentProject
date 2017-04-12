@@ -67,10 +67,17 @@ namespace network
         /// Handles the bitfield message and contents sent by the peer
         void readBitfield(uint32_t length);
 
+        /// Handles the request message when received from the peer
+        void readRequest();
+
     /// Functions to handle sending of data
     private:
         /// Sends the client's handshake to the peer
         void sendHandshake();
+
+        /// Sends a fragment of the piece at the given index, with an offset of the piece and
+        /// specified length to the peer 
+        void sendPiece(uint32_t pieceIdx, uint32_t offset, uint32_t length);
 
     private:
         /// The peer's identifier

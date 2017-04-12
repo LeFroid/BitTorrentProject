@@ -142,6 +142,10 @@ namespace network
             // Request: <len=0013><id=6><index><begin><length>
             case 6:
                 LOG_DEBUG("torrent_protocol.network", "Request received by peer");
+                if (m_bufferRead.getSizeUnread() < length - 1)
+                    readRequest();
+                else
+                    m_bufferRead.reverseReadPosition(5);
                 break;
             // Piece: <len=0009+X><id=7><index><begin><block>
             case 7:
@@ -233,6 +237,18 @@ namespace network
         m_torrentState->readPeerBitset(m_piecesHave);
     }
 
+    void Peer::readRequest()
+    {
+        uint32_t pieceIdx, offset, length;
+        m_bufferRead >> pieceIdx;
+        m_bufferRead >> offset;
+        m_bufferRead >> length;
+
+        // Make sure we have this piece
+        if (m_torrentState->havePiece(pieceIdx))
+            sendPiece(pieceIdx, offset, length)
+    }
+
     void Peer::sendHandshake()
     {
         // Handshake is of the format "<pstrlen><pstr><reserved><info_hash><peer_id>"
@@ -254,4 +270,11 @@ namespace network
         m_sentHandshake = true;
         send(std::move(mb));
     }
+
+    void Peer::sendPiece(uint32_t pieceIdx, uint32_t offset, uint32_t length)
+    {
+        // At this point it is already confirmed we have the piece
+        // Fetch fragment from m_torrentState and send piece message to peer
+    }
 }
+
