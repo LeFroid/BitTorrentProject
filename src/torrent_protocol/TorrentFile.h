@@ -50,6 +50,9 @@ public:
     /// Returns the announce URL
     http::URL getAnnounceURL();
 
+    /// Returns a shared pointer to the string containing the digests of each piece in the torrent file
+    std::shared_ptr<bencoding::BenString> getDigestString();
+
     /// Returns a pointer to the info dictionary associated with the torrent file
     bencoding::BenDictionary *getInfoDictionary();
 

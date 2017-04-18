@@ -54,6 +54,21 @@ http::URL TorrentFile::getAnnounceURL()
     return http::URL(bencast<BenString*>(it->second)->getValue());
 }
 
+std::shared_ptr<BenString> TorrentFile::getDigestString()
+{
+    std::shared_ptr<BenString> retVal(nullptr);
+
+    BenDictionary *infoDict = getInfoDictionary();
+    if (infoDict)
+    {
+        auto itr = infoDict->find("pieces");
+        if (itr != infoDict->end())
+            retVal = std::static_pointer_cast<BenString>(itr->second);
+    }
+
+    return retVal;
+}
+
 BenDictionary *TorrentFile::getInfoDictionary()
 {
     BenDictionary::iterator infoItr = m_metaInfo->find("info");

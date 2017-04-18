@@ -47,6 +47,9 @@ namespace network
         /// Constructs a peer by moving the given tcp socket
         Peer(boost::asio::ip::tcp::socket &&socket);
 
+        /// Peer destructor
+        ~Peer();
+
         /// Sets the shared pointer to the torrent state for the p2p connection
         void setTorrentState(std::shared_ptr<TorrentState> state);
 
@@ -64,6 +67,9 @@ namespace network
         /// Handles the handshake message sent by the peer
         void readHandshake();
 
+        /// Handles the unchoke message sent by the peer
+        void readUnchoked();
+
         /// Handles the bitfield message and contents sent by the peer
         void readBitfield(uint32_t length);
 
@@ -75,9 +81,16 @@ namespace network
         /// Sends the client's handshake to the peer
         void sendHandshake();
 
+        /// Sends the interested message to the peer
+        void sendInterested();
+
         /// Sends a fragment of the piece at the given index, with an offset of the piece and
         /// specified length to the peer 
         void sendPiece(uint32_t pieceIdx, uint32_t offset, uint32_t length);
+
+        /// Sends a request to the peer for a fragment of the given piece with the specified
+        /// fragment offset and length
+        void sendRequest(uint32_t pieceIdx, uint32_t offset, uint32_t length);
 
     private:
         /// The peer's identifier

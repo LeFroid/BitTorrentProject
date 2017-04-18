@@ -28,10 +28,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 TorrentState::TorrentState(const std::string &torrentFilePath) :
     m_file(std::make_shared<TorrentFile>(torrentFilePath)),
-    m_pieceInfo(m_file->getNumPieces()),
-    m_piecesAvailable(m_file->getNumPieces()),
-    m_currentPiece(0),
-    m_downloadComplete(false)
+    m_numPeers(0),
+    m_downloadComplete(false),
+    m_pieceMgr(m_file->getPieceLength(), m_file->getNumPieces(), m_file->getFileSize(), m_file->getDigestString())
 {
 }
 
@@ -40,54 +39,17 @@ std::shared_ptr<TorrentFile> &TorrentState::getTorrentFile()
     return m_file;
 }
 
-const uint32_t &TorrentState::getCurrentPieceNum()
+const uint32_t &TorrentState::getNumPeers()
 {
-    // First check if current piece has finished downloading
-    if ((!m_downloadComplete && m_pieceInfo[m_currentPiece])
-            || !m_piecesAvailable[m_currentPiece])
-        m_currentPiece = determineNextPiece();
-
-    return m_currentPiece;
+    return m_numPeers;
 }
 
-bool TorrentState::havePiece(uint32_t pieceIdx) const
+void TorrentState::incrementPeerCount()
 {
-    // Make sure index is valid
-    if (pieceIdx >= m_pieceInfo.size())
-        return false;
-
-    return m_pieceInfo[pieceIdx];
+    ++m_numPeers;
 }
 
-void TorrentState::markPieceAvailable(uint32_t pieceIdx)
+void TorrentState::decrementPeerCount()
 {
-    // Make sure index is valid
-    if (pieceIdx >= m_piecesAvailable.size())
-        return;
-
-    m_piecesAvailable[pieceIdx] = true;
-}
-
-void TorrentState::readPeerBitset(const boost::dynamic_bitset<> &set)
-{
-    m_piecesAvailable |= set;
-}
-
-uint32_t TorrentState::determineNextPiece()
-{
-    //TODO: First piece == randomly chosen, after that use rarest first algorithm
-    uint32_t retVal = 0;
-    auto numPieces = m_pieceInfo.size();
-
-    boost::dynamic_bitset<> piecesToChoose = (m_piecesAvailable & (~m_pieceInfo));
-    if (!piecesToChoose.any())
-        return numPieces + 1;
-
-    while (true)
-    {
-        retVal = uint64_t(rand()) % numPieces;
-        if (piecesToChoose[retVal])
-            return retVal;
-    }
-    return numPieces + 1;
+    --m_numPeers;
 }

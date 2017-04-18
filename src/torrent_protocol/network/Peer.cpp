@@ -58,6 +58,12 @@ namespace network
     {
     }
 
+    Peer::~Peer()
+    {
+        if (m_torrentState.get())
+            m_torrentState->decrementPeerCount();
+    }
+
     void Peer::setTorrentState(std::shared_ptr<TorrentState> state)
     {
         m_torrentState = state;
@@ -101,7 +107,7 @@ namespace network
         uint8_t messageID;
         m_bufferRead >> messageID;
 
-        // Handle message (TODO: messages 6 through 9)
+        // Handle message
         switch (messageID)
         {
             // Choke [no payload]
@@ -112,7 +118,7 @@ namespace network
             // Unchoke [no payload]
             case 1:
                 LOG_DEBUG("torrent_protocol.network", "Unchoke message received by peer");
-                m_chokedBy = false;
+                readUnchoked();
                 break;
             // Interested [no payload]
             case 2:
@@ -210,6 +216,15 @@ namespace network
         read();
     }
 
+    void Peer::readUnchoked()
+    {
+        m_chokedBy = false;
+
+        // Check if peer has the current piece to be downloaded
+        auto currentPiece = m_torrentState->getCurrentPieceNum();
+        if (currentPiece < m_piecesHave.size() && m_piecesHave[currentPiece]) { } // sendRequest(currentPiece) block size typically 16384
+    }
+
     void Peer::readBitfield(uint32_t length)
     {
         // Bounds check already performed on raw buffer
@@ -235,6 +250,11 @@ namespace network
 
         // Inform TorrentState of the pieces this peer has
         m_torrentState->readPeerBitset(m_piecesHave);
+
+        // Check if peer has the current piece to be downloaded
+        auto currentPiece = m_torrentState->getCurrentPieceNum();
+        if (currentPiece < m_piecesHave.size() && m_piecesHave[currentPiece])
+            sendInterested();
     }
 
     void Peer::readRequest()
@@ -244,13 +264,15 @@ namespace network
         m_bufferRead >> offset;
         m_bufferRead >> length;
 
-        // Make sure we have this piece
-        if (m_torrentState->havePiece(pieceIdx))
-            sendPiece(pieceIdx, offset, length)
+        // Make sure we have this piece and are not currently choking the peer
+        if (m_torrentState->havePiece(pieceIdx) && !m_amChoking)
+            sendPiece(pieceIdx, offset, length);
     }
 
     void Peer::sendHandshake()
     {
+        m_torrentState->incrementPeerCount();
+
         // Handshake is of the format "<pstrlen><pstr><reserved><info_hash><peer_id>"
         auto endpoint = getTCPEndpoint();
         LOG_DEBUG("torrent_protocol.network", "Sending handshake to peer with endpoint ", endpoint.address().to_string(), ':', endpoint.port());
@@ -271,10 +293,29 @@ namespace network
         send(std::move(mb));
     }
 
+    void Peer::sendInterested()
+    {
+        MutableBuffer mb(4 + 1);
+        mb << uint32_t(1);       // Length
+        mb << uint8_t(2);        // Message ID
+        send(std::move(mb));
+    }
+
     void Peer::sendPiece(uint32_t pieceIdx, uint32_t offset, uint32_t length)
     {
         // At this point it is already confirmed we have the piece
         // Fetch fragment from m_torrentState and send piece message to peer
+    }
+
+    void Peer::sendRequest(uint32_t pieceIdx, uint32_t offset, uint32_t length)
+    {
+        MutableBuffer mb(4 + 1 + 4 + 4 + 4);
+        mb << uint32_t(13);     // Length
+        mb << uint8_t(6);       // Message ID
+        mb << pieceIdx;         // Piece
+        mb << offset;           // Fragment Offset
+        mb << length;           // Fragment Length
+        send(std::move(mb));
     }
 }
 
