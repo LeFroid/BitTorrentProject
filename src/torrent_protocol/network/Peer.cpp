@@ -25,10 +25,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <boost/dynamic_bitset.hpp>
 #include <cstdint>
+#include <algorithm>
 #include "Peer.h"
 #include "TorrentMgr.h"
 #include "TorrentState.h"
 #include "TorrentFile.h"
+#include "TorrentFragment.h"
 
 namespace network
 {
@@ -41,7 +43,9 @@ namespace network
         m_recvdHandshake(false),
         m_sentHandshake(false),
         m_piecesHave(),
-        m_torrentState()
+        m_torrentState(),
+        m_fragmentDownload(nullptr),
+        m_fragBytesDownloaded(0)
     {
     }
 
@@ -54,20 +58,40 @@ namespace network
         m_recvdHandshake(false),
         m_sentHandshake(false),
         m_piecesHave(),
-        m_torrentState()
+        m_torrentState(),
+        m_fragmentDownload(nullptr),
+        m_fragBytesDownloaded(0)
     {
     }
 
     Peer::~Peer()
     {
         if (m_torrentState.get())
-            m_torrentState->decrementPeerCount();
+            m_torrentState->decrementPeerCount();        
     }
 
     void Peer::setTorrentState(std::shared_ptr<TorrentState> state)
     {
         m_torrentState = state;
         m_piecesHave.resize(m_torrentState->getTorrentFile()->getNumPieces());
+    }
+
+    void Peer::tryToRequestPiece()
+    {
+        if (m_chokedBy)
+            return;
+
+        // Check if peer has the current piece to be downloaded
+        auto currentPiece = m_torrentState->getCurrentPieceNum();
+        if (currentPiece < m_piecesHave.size() && m_piecesHave[currentPiece])
+        {
+            m_fragmentDownload = m_torrentState->getFragmentToDownload();
+            if (m_fragmentDownload != nullptr)
+            {
+                m_fragBytesDownloaded = 0;
+                sendRequest(m_fragmentDownload->PieceIdx, m_fragmentDownload->Offset, m_fragmentDownload->Length);
+            }
+        }
     }
 
     void Peer::onConnect()
@@ -104,6 +128,16 @@ namespace network
         if (length == 0)
             return;
 
+        // Check if length is equal to amount of data received
+        //LOG_DEBUG("torrent_protocol.network", "Length specified = ", length, ", amount received = ", m_bufferRead.getSizeUnread());
+        if (m_bufferRead.getSizeUnread() < length)
+        {
+            // Reverse position by the size of length variable (4 byte), read more data, exit
+            m_bufferRead.reverseReadPosition(4);
+            read();
+            return;
+        }
+
         uint8_t messageID;
         m_bufferRead >> messageID;
 
@@ -135,27 +169,24 @@ namespace network
                 LOG_DEBUG("torrent_protocol.network", "Have message received by peer");
                 uint32_t pieceIdx;
                 m_bufferRead >> pieceIdx;
+                m_piecesHave[pieceIdx] = true;
                 m_torrentState->markPieceAvailable(pieceIdx);
+                tryToRequestPiece();
                 break;
             // Bitfield: <len=0001+X><id=5><bitfield>
             case 5:
                 LOG_DEBUG("torrent_protocol.network", "Bitfield received by peer, length ", length - 1);
-                if (m_bufferRead.getSizeUnread() < length - 1) // Make sure all of the data was sent first
-                    readBitfield(length - 1);
-                else
-                    m_bufferRead.reverseReadPosition(5);       // Reverse position back to length prefix if waiting on data
+                readBitfield(length - 1);
                 break;
             // Request: <len=0013><id=6><index><begin><length>
             case 6:
                 LOG_DEBUG("torrent_protocol.network", "Request received by peer");
-                if (m_bufferRead.getSizeUnread() < length - 1)
-                    readRequest();
-                else
-                    m_bufferRead.reverseReadPosition(5);
+                readRequest();
                 break;
             // Piece: <len=0009+X><id=7><index><begin><block>
             case 7:
                 LOG_DEBUG("torrent_protocol.network", "Piece (block) message received by peer");
+                readPiece(length - 9);
                 break;
             // Cancel: <len=0013><id=8><index><begin><length>
             case 8:
@@ -219,10 +250,7 @@ namespace network
     void Peer::readUnchoked()
     {
         m_chokedBy = false;
-
-        // Check if peer has the current piece to be downloaded
-        auto currentPiece = m_torrentState->getCurrentPieceNum();
-        if (currentPiece < m_piecesHave.size() && m_piecesHave[currentPiece]) { } // sendRequest(currentPiece) block size typically 16384
+        tryToRequestPiece();
     }
 
     void Peer::readBitfield(uint32_t length)
@@ -255,6 +283,40 @@ namespace network
         auto currentPiece = m_torrentState->getCurrentPieceNum();
         if (currentPiece < m_piecesHave.size() && m_piecesHave[currentPiece])
             sendInterested();
+    }
+
+    void Peer::readPiece(uint32_t blockSize)
+    {
+        LOG_DEBUG("torrent_protocol.network", "Reading piece of block size ", blockSize, " from peer");
+        uint32_t pieceIdx, offset;
+        m_bufferRead >> pieceIdx;
+        m_bufferRead >> offset;
+
+        if (!m_fragmentDownload.get())
+        {
+            m_bufferRead.advanceReadPosition(blockSize);
+            return;
+        }
+
+        if (pieceIdx != m_fragmentDownload->PieceIdx)
+            LOG_WARNING("torrent_protocol.network", "Received fragment of piece ", pieceIdx, ", but requested data for piece ", m_fragmentDownload->PieceIdx);
+        if (offset != m_fragmentDownload->Offset)
+            LOG_WARNING("torrent_protocol.network", "Received offset of ", offset, " for piece ", pieceIdx, " but requested offset of ", m_fragmentDownload->Offset);
+        if (blockSize > m_fragmentDownload->Length)
+            LOG_WARNING("torrent_protocol.network", "Received fragment of size ", blockSize, ", however requested length of ", m_fragmentDownload->Length, " instead");
+
+        // Copy data, advance read position and take note of bytes downloaded
+        m_fragmentDownload->WriteData(m_bufferRead.getReadPointer(), m_fragBytesDownloaded, blockSize);
+        //memcpy(&(m_fragmentDownload->Data[m_fragBytesDownloaded]), m_bufferRead.getReadPointer(), blockSize);
+        m_bufferRead.advanceReadPosition(blockSize);
+        m_fragBytesDownloaded += blockSize;
+
+        // Inform torrent state if fully downloaded
+        if (m_fragBytesDownloaded >= m_fragmentDownload->Length)
+        {
+            m_torrentState->onFragmentDownloaded(m_fragmentDownload->PieceIdx);
+            tryToRequestPiece();
+        }
     }
 
     void Peer::readRequest()
@@ -303,12 +365,22 @@ namespace network
 
     void Peer::sendPiece(uint32_t pieceIdx, uint32_t offset, uint32_t length)
     {
-        // At this point it is already confirmed we have the piece
-        // Fetch fragment from m_torrentState and send piece message to peer
+        std::shared_ptr<TorrentFragment> fragPtr = m_torrentState->getFragmentToUpload(pieceIdx, offset, length);
+        if (!fragPtr.get())
+            return;
+
+        MutableBuffer mb(4 + 1 + 4 + 4 + length);
+        mb << uint32_t(9 + length); // Length
+        mb << uint8_t(7);           // Message ID
+        mb << pieceIdx;
+        mb << offset;
+        mb.write((char*)fragPtr->Data, length);
+        send(std::move(mb));
     }
 
     void Peer::sendRequest(uint32_t pieceIdx, uint32_t offset, uint32_t length)
     {
+        LOG_DEBUG("torrent_protocol.network", "Sending request for piece ", pieceIdx, ", offset ", offset, ", length ", length);
         MutableBuffer mb(4 + 1 + 4 + 4 + 4);
         mb << uint32_t(13);     // Length
         mb << uint8_t(6);       // Message ID

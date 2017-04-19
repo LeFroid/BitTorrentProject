@@ -31,8 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "TorrentFragment.h"
 
+class TorrentFile;
 class TorrentState;
-
 namespace bencoding { class BenString; }
 
 /**
@@ -50,19 +50,21 @@ class PieceMgr
 public:
     /**
      * @brief Constructs the piece manager with the given parameters
-     * @param pieceLength Number of bytes per piece
-     * @param numPieces Number of pieces in the torrent file
-     * @param fileSize Total number of bytes in the torrent file (used to calculate length of final piece)
-     * @param digestString String found in the Info dictionary of a torrent file, containing the SHA1 hash values
-     *                     of each piece that makes up the torrent file
+     * @param torrentFile Pointer to the torrent file
      */
-    explicit PieceMgr(uint32_t pieceLength, uint64_t numPieces, uint64_t fileSize, std::shared_ptr<bencoding::BenString> digestString);
+    explicit PieceMgr(std::shared_ptr<TorrentFile> torrentFile);
 
     /// Returns true if the piece is available on the client side, false if else
     bool havePiece(uint32_t pieceIdx) const;
 
     /// Returns the index of the current piece to be downloaded
     const uint32_t &getCurrentPieceNum();
+
+    /// Returns the total number of pieces that have been downloaded & verified
+    uint64_t getNumPiecesHave();
+
+    //todo: ability to serialize the pieces already verified and downloaded to a config file,
+    //      so application can resume downloading after program exits
 
 protected:
     /// Sets the flag for the piece at the given index as being available for downloading from a peer
@@ -75,10 +77,14 @@ protected:
     /// Returns a pointer to a torrent fragment structure that needs to be downloaded.
     /// If the fragments associated with the current piece have already been assigned,
     /// returns a null pointer.
-    TorrentFragment *getFragmentToDownload();
+    std::shared_ptr<TorrentFragment> getFragmentToDownload();
+
+    /// If the client has the given fragment, it will return a shared pointer to a structure containing its data.
+    /// Otherwise, returns a null pointer
+    std::shared_ptr<TorrentFragment> getFragmentToUpload(uint32_t pieceIdx, uint32_t offset, uint32_t length);
 
     /// Called by a peer once a fragment has been downloaded in its entirety
-    void onFragmentDownloaded();
+    void onFragmentDownloaded(uint32_t pieceIdx);
 
 private:
     /// Returns the number of fragments that make up the piece with the given index
@@ -90,15 +96,27 @@ private:
     /// Called after all fragments of a piece have finished downloading
     void onAllFragmentsDownloaded();
 
+    /// Writes the verified piece onto the disk, given a pointer to the data and its length in bytes
+    void writePieceToDisk(uint8_t *data, size_t pieceLength);
+
 private:
     /// Number of bytes per typical piece
     uint32_t m_pieceLength;
 
+    /// Number of bytes in the final piece of the torrent
+    uint32_t m_finalPieceLen;
+
     /// Number of fragments per typical piece
     uint32_t m_fragmentsPerPiece;
 
+    /// Number of fragments in the final piece of the torrent
+    uint32_t m_fragmentsInFinalPiece;
+
     /// Size of the torrent file
     uint64_t m_fileSize;
+
+    /// Shared pointer to the torrent file
+    std::shared_ptr<TorrentFile> m_torrentFile;
 
     /// Bencoded string of SHA-1 hash values of each piece in the torrent file
     std::shared_ptr<bencoding::BenString> m_digestString;
@@ -114,7 +132,7 @@ private:
     boost::dynamic_bitset<> m_piecesAvailable;
 
     /// Stores the blocks/fragments of the piece currently being downloaded
-    std::vector<TorrentFragment> m_pieceBeingDownloaded;
+    std::vector< std::shared_ptr<TorrentFragment> >m_pieceBeingDownloaded;
 
     /// Number of peers downloading the fragments in m_pieceBeingDownloaded
     uint32_t m_numPeersDownloading;
@@ -124,4 +142,6 @@ private:
 
     /// Used to synchronize requests about piece downloading or information
     std::mutex m_pieceLock;
+
+    //have std::ofstream as member for case of single file mode
 };

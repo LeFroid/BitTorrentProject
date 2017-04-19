@@ -27,28 +27,50 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstdlib>
 
 #include <algorithm>
+#include <boost/filesystem.hpp>
+#include <fstream>
 
 #include "PieceMgr.h"
 
+#include "BenDictionary.h"
+#include "BenInt.h"
+#include "BenList.h"
 #include "BenString.h"
 #include "SHA1Hash.h"
+#include "TorrentFile.h"
+#include "TorrentMgr.h"
 #include "LogHelper.h"
 
 const static uint32_t DefaultFragmentLength = 16384;
 
-PieceMgr::PieceMgr(uint32_t pieceLength, uint64_t numPieces, uint64_t fileSize, std::shared_ptr<bencoding::BenString> digestString) :
-    m_pieceLength(pieceLength),
+using namespace bencoding;
+
+PieceMgr::PieceMgr(std::shared_ptr<TorrentFile> torrentFile) :
+    m_pieceLength(torrentFile->getPieceLength()),
+    m_finalPieceLen(0),
     m_fragmentsPerPiece(0),
-    m_fileSize(fileSize),
-    m_digestString(digestString),
+    m_fragmentsInFinalPiece(0),
+    m_fileSize(torrentFile->getFileSize()),
+    m_torrentFile(torrentFile),
+    m_digestString(torrentFile->getDigestString()),
     m_currentPiece(0),
-    m_pieceInfo(numPieces),
-    m_piecesAvailable(numPieces),
+    m_pieceInfo(torrentFile->getNumPieces()),
+    m_piecesAvailable(torrentFile->getNumPieces()),
     m_pieceBeingDownloaded(),
     m_numPeersDownloading(0),
     m_numPeersFinishedFragment(0)
 {
-    m_fragmentsPerPiece = std::ceil(double(pieceLength) / DefaultFragmentLength);
+    m_fragmentsPerPiece = std::ceil(double(m_pieceLength) / DefaultFragmentLength);
+
+    /// Calculate information about the final piece (size, number of fragments)
+    int64_t finalPieceLen = m_pieceInfo.size() * m_pieceLength - m_fileSize;
+    if (finalPieceLen < 0)
+        finalPieceLen *= -1;
+    m_finalPieceLen = (uint32_t)finalPieceLen;
+    if (DefaultFragmentLength > finalPieceLen)
+        m_fragmentsInFinalPiece = 1;
+    else
+        m_fragmentsInFinalPiece = (uint32_t)ceil(double(finalPieceLen) / DefaultFragmentLength);
 }
 
 bool PieceMgr::havePiece(uint32_t pieceIdx) const
@@ -63,10 +85,17 @@ const uint32_t &PieceMgr::getCurrentPieceNum()
 {
     std::lock_guard<std::mutex> lock(m_pieceLock);
 
-    if ((!m_pieceInfo.all() && m_pieceInfo[m_currentPiece]) || !m_piecesAvailable[m_currentPiece])
+    if ((!m_pieceInfo.all() && m_pieceInfo[m_currentPiece])
+            || !m_piecesAvailable[m_currentPiece]
+            || m_pieceBeingDownloaded.empty())
         determineNextPiece();
 
     return m_currentPiece;
+}
+
+uint64_t PieceMgr::getNumPiecesHave()
+{
+    return m_pieceInfo.count();
 }
 
 void PieceMgr::markPieceAvailable(const uint32_t &pieceIdx)
@@ -83,28 +112,88 @@ void PieceMgr::readPeerBitset(const boost::dynamic_bitset<> &set)
     m_piecesAvailable |= set;
 }
 
-TorrentFragment *PieceMgr::getFragmentToDownload()
+std::shared_ptr<TorrentFragment> PieceMgr::getFragmentToDownload()
 {
     std::lock_guard<std::mutex> lock(m_pieceLock);
 
-    TorrentFragment *fragPtr = nullptr;
+    std::shared_ptr<TorrentFragment> fragPtr(nullptr);
 
-    auto activeFragCount = m_numPeersDownloading + m_numPeersFinishedFragment;
-    if (activeFragCount < m_pieceBeingDownloaded.size())
-    {
-        fragPtr = &(m_pieceBeingDownloaded[activeFragCount]);
+    uint32_t activeFragCount = (m_numPeersDownloading + m_numPeersFinishedFragment) % m_pieceBeingDownloaded.size();
+    //if (activeFragCount < m_pieceBeingDownloaded.size())
+    //{
+        //LOG_DEBUG("torrent_protocol.PieceMgr", "Active frag count = ", activeFragCount, " peers downloading = ", m_numPeersDownloading, ", peers finished = ", m_numPeersFinishedFragment);
+        fragPtr = m_pieceBeingDownloaded.at(activeFragCount);
         ++m_numPeersDownloading;
-    }
+    //}
 
     return fragPtr;
 }
 
-void PieceMgr::onFragmentDownloaded()
+std::shared_ptr<TorrentFragment> PieceMgr::getFragmentToUpload(uint32_t pieceIdx, uint32_t offset, uint32_t length)
+{
+    std::shared_ptr<TorrentFragment> fragPtr(nullptr);
+
+    // Bounds checks
+    if (pieceIdx + 1 > m_pieceInfo.size() || !m_pieceInfo[pieceIdx])
+        return fragPtr;
+    if (offset + length > m_pieceLength)
+        return fragPtr;
+
+    // Load fragment from disk
+    BenDictionary *infoDict = m_torrentFile->getInfoDictionary();
+    if (!infoDict)
+    {
+        LOG_ERROR("torrent_protocol.PieceMgr", "Unable to retrieve pointer to Info Dictionary, will not be reading data from disk.");
+        return fragPtr;
+    }
+
+    // Determine if single or multi file mode
+    auto it = infoDict->find("files");
+    if (it != infoDict->end())
+    {
+        //TODO: Multi-file mode
+    }
+    else
+    {
+        // Single-File mode
+        it = infoDict->find("name");
+        if (it != infoDict->end())
+        {
+            // Get path to file: Should be {Download Directory} / {File Name}
+            std::string pathStr = eTorrentMgr.getDownloadDirectory() + bencast<BenString*>(it->second)->getValue();
+            boost::filesystem::path filePath(pathStr);
+
+            // Open file
+            std::ifstream fIn(pathStr, std::ofstream::in | std::ofstream::binary);
+            if (!fIn.is_open())
+                return fragPtr;
+
+            // Get file length to ensure valid request
+            fIn.seekg(0, fIn.end);
+            uint64_t fileLen = fIn.tellg();
+            fIn.seekg(0, fIn.beg);
+
+            if (fileLen < (m_pieceLength * pieceIdx) + offset + length)
+                return fragPtr;
+
+            // Seek to position, read data into fragment structure, done
+            fragPtr = std::make_shared<TorrentFragment>(pieceIdx, offset, length);
+            fIn.seekg(m_pieceLength * pieceIdx + offset);
+            fIn.read((char*)fragPtr->Data, length);
+            fIn.close();
+        }
+    }
+    return fragPtr;
+}
+
+void PieceMgr::onFragmentDownloaded(uint32_t pieceIdx)
 {
     std::lock_guard<std::mutex> lock(m_pieceLock);
 
+    //LOG_DEBUG("torrent_protocol.network", "onFragmentDownloaded() has been called");
+
     // Sanity check
-    if (m_numPeersDownloading == 0)
+    if (m_numPeersDownloading == 0 || pieceIdx != m_currentPiece)
         return;
 
     // Decrement the count of peers still downloading fragments, increment the completed frag. download counter
@@ -119,14 +208,9 @@ void PieceMgr::onFragmentDownloaded()
 uint32_t PieceMgr::getNumFragments(uint32_t pieceIdx)
 {
     // calculate number of fragments in the last piece
-    if (pieceIdx + 1 >= m_pieceInfo.size())
+    if (pieceIdx + 1 == m_pieceInfo.size())
     {
-        int64_t finalPieceLen = m_pieceInfo.size() * m_pieceLength - m_fileSize;
-        if (finalPieceLen < 0)
-            finalPieceLen *= -1;
-        if (DefaultFragmentLength > finalPieceLen)
-            return 1;
-        return (uint32_t)ceil(double(finalPieceLen) / DefaultFragmentLength);
+        return m_fragmentsInFinalPiece;
     }
 
     return m_fragmentsPerPiece;
@@ -155,16 +239,18 @@ void PieceMgr::determineNextPiece()
             m_numPeersFinishedFragment = 0;
 
             // Populate fragment vector for the new piece
+            const uint32_t pieceLength = (m_currentPiece + 1 == m_pieceInfo.size()) ? m_finalPieceLen : m_pieceLength;
             uint32_t numFragsForPiece = getNumFragments(m_currentPiece);
-            uint32_t currentFragmentLength = std::min(DefaultFragmentLength, m_pieceLength);
+
+            uint32_t currentFragmentLength = std::min(DefaultFragmentLength, pieceLength);
             uint32_t currentFragmentOffset = 0;
             for (uint32_t i = 0; i < numFragsForPiece; ++i)
             {
-                TorrentFragment fragment(m_currentPiece, currentFragmentOffset, currentFragmentLength);
+                std::shared_ptr<TorrentFragment> fragment(std::make_shared<TorrentFragment>(m_currentPiece, currentFragmentOffset, currentFragmentLength));
                 m_pieceBeingDownloaded.push_back(fragment);
 
                 currentFragmentOffset += currentFragmentLength;
-                currentFragmentLength = std::min(DefaultFragmentLength, m_pieceLength - currentFragmentOffset);
+                currentFragmentLength = std::min(DefaultFragmentLength, pieceLength - currentFragmentOffset);
             }
 
             return;
@@ -190,7 +276,7 @@ void PieceMgr::onAllFragmentsDownloaded()
     uint8_t *pieceData = new uint8_t[pieceLength];
 
     for (auto fragment : m_pieceBeingDownloaded)
-        memcpy(&pieceData[fragment.Offset], fragment.Data, fragment.Length);
+        memcpy(&pieceData[fragment->Offset], fragment->Data, fragment->Length);
 
     // Calculate digest value
     SHA1Hash hash;
@@ -212,8 +298,8 @@ void PieceMgr::onAllFragmentsDownloaded()
     // If hashes match, store the piece onto the disk, set m_pieceInfo[m_currentPiece] to 1
     if (memcmp(hash.getDigest(), digestPtr, SHA_DIGEST_LENGTH) == 0)
     {
-        //TODO: Write to disk
-        m_pieceInfo[m_currentPiece] = 1;
+        writePieceToDisk(pieceData, pieceLength);
+        LOG_INFO("torrent_protocol.PieceMgr", "Verified piece ", m_currentPiece, ", writing to disk. Have downloaded ", m_pieceInfo.count(), " of ", m_pieceInfo.size(), " pieces.");
     }
     else
     {
@@ -223,4 +309,103 @@ void PieceMgr::onAllFragmentsDownloaded()
 
     // Free memory that was allocated ot pieceData
     delete[] pieceData;
+}
+
+void PieceMgr::writePieceToDisk(uint8_t *data, size_t pieceLength)
+{
+    // Get info dictionary to determine file name, if single or multi file mode, etc.
+    BenDictionary *infoDict = m_torrentFile->getInfoDictionary();
+    if (!infoDict)
+    {
+        LOG_ERROR("torrent_protocol.PieceMgr", "Unable to retrieve pointer to Info Dictionary, will not be writing data to disk.");
+        return;
+    }
+
+    // Determine if single or multi file mode
+    auto it = infoDict->find("files");
+    if (it != infoDict->end())
+    {
+        // Multi-File mode
+        BenList *fileList = bencast<BenList*>(it->second);
+
+        // Get the path which files will be placed into
+        std::string basePathStr = eTorrentMgr.getDownloadDirectory();
+        it = infoDict->find("name");
+        if (it != infoDict->end())
+            basePathStr.append(bencast<BenString*>(it->second)->getValue());
+        boost::filesystem::path basePath(basePathStr);
+
+        // Create base directory if not already extant
+        boost::system::error_code ec;
+        if (!boost::filesystem::exists(basePath, ec))
+            boost::filesystem::create_directory(basePath);
+
+        // Next, iterate through list of files until first one found with offset of piece to save
+        int64_t pieceOffset = m_currentPiece * m_pieceLength;
+        int64_t filesLength = 0;
+        for (auto fileIt = fileList->begin(); fileIt != fileList->end(); ++fileIt)
+        {
+            BenDictionary *fileDict = bencast<BenDictionary*>(*fileIt);
+            auto lengthIt = fileDict->find("length");
+            filesLength += (bencast<BenInt*>(lengthIt->second)->getValue());
+            if (filesLength >= pieceOffset)
+            {
+                // Get full path to file
+                auto pathItr = fileDict->find("path");
+                if (pathItr != fileDict->end())
+                {
+                    // Iterate through path list, appending each item to the filePath object
+                    BenList *pathList = bencast<BenList*>(pathItr->second);
+                    boost::filesystem::path filePath = basePath;
+
+                    for (auto pathItr2 = pathList->begin(); pathItr2 != pathList->end(); ++pathItr2)
+                    {
+                        boost::filesystem::path subPath(bencast<BenString*>(*pathItr2)->getValue());
+                        filePath /= subPath;
+                    }
+
+                    // Finally, open the file, write data into it
+                    //TODO: make sure directory exists, create or open file, resize if necessary, write data into file
+                }
+                break;
+            }
+        }
+    }
+    else
+    {
+        // Single-File mode
+        it = infoDict->find("name");
+        if (it != infoDict->end())
+        {
+            // Get path to file: Should be {Download Directory} / {File Name}
+            std::string pathStr = eTorrentMgr.getDownloadDirectory() + bencast<BenString*>(it->second)->getValue();
+            boost::filesystem::path filePath(pathStr);
+
+            // Open file
+            std::ofstream fOut(pathStr, std::ofstream::out | std::ofstream::binary);
+
+            // Resize file if necessary
+            boost::system::error_code ec;
+            if (boost::filesystem::file_size(filePath, ec) < m_fileSize)
+            {
+                if (ec)
+                    LOG_ERROR("torrent_protocol.PieceMgr", "Error reported from calling boost::filesystem::file_size on ", pathStr, " , Error message: ", ec.message());
+
+                boost::filesystem::resize_file(filePath, m_fileSize, ec);
+
+                if (ec)
+                    LOG_ERROR("torrent_protocol.PieceMgr", "Error reported from calling boost::filesystem::resize_file on ", pathStr, " , Error message: ", ec.message());
+            }
+
+            // Seek to appropriate position in file
+            fOut.seekp(m_currentPiece * m_pieceLength);
+
+            // Write data, close file
+            fOut.write((const char*)data, pieceLength);
+            fOut.close();
+        }
+    }
+
+    // If able to write to disk, mark it as downloaded
+    m_pieceInfo[m_currentPiece] = true;
 }

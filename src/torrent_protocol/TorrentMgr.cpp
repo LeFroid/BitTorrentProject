@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "TorrentMgr.h"
 #include "TorrentFile.h"
 
-const char *PeerNameVersion = "-BTP001-";
+const char *PeerNameVersion = "-BTP01-x";
 
 TorrentMgr::TorrentMgr(const std::string &configFile) :
     m_ioService(),

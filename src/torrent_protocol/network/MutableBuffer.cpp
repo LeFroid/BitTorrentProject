@@ -151,7 +151,7 @@ namespace network
 
     void MutableBuffer::reverseReadPosition(size_type numBytes)
     {
-        if (m_readPos > numBytes)
+        if (m_readPos >= numBytes)
             m_readPos -= numBytes;
     }
 

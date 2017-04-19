@@ -53,6 +53,9 @@ public:
     /// Returns the number of connected peers that are associated with the torrent
     const uint32_t &getNumPeers();
 
+    /// Returns the number of pieces that have been downloaded and verified
+    uint64_t getNumPiecesHave() { return m_pieceMgr.getNumPiecesHave(); }
+
     /// Returns true if the client has the given piece of the torrent data, false if else
     bool havePiece(uint32_t pieceIdx) const { return m_pieceMgr.havePiece(pieceIdx); }
 
@@ -76,10 +79,14 @@ protected:
     /// Returns a pointer to a torrent fragment structure that needs to be downloaded.
     /// If the fragments associated with the current piece have already been assigned,
     /// returns a null pointer.
-    TorrentFragment *getFragmentToDownload() { return m_pieceMgr.getFragmentToDownload(); }
+    std::shared_ptr<TorrentFragment> getFragmentToDownload() { return m_pieceMgr.getFragmentToDownload(); }
+
+    /// If the client has the given fragment, it will return a shared pointer to a structure containing its data.
+    /// Otherwise, returns a null pointer
+    std::shared_ptr<TorrentFragment> getFragmentToUpload(uint32_t pieceIdx, uint32_t offset, uint32_t length) { return m_pieceMgr.getFragmentToUpload(pieceIdx, offset, length); }
 
     /// Called by a peer once a fragment has been downloaded in its entirety
-    void onFragmentDownloaded() { m_pieceMgr.onFragmentDownloaded(); }
+    void onFragmentDownloaded(uint32_t pieceIdx) { m_pieceMgr.onFragmentDownloaded(pieceIdx); }
 
 private:
     /// Shared pointer to the torrent file

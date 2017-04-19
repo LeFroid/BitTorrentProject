@@ -37,6 +37,7 @@ TorrentFile::TorrentFile(std::string path) :
     m_numPieces(0),
     m_size(0),
     m_infoHash(),
+    m_singleFileMode(false),
     m_metaInfo()
 {
     parseFile(path);
@@ -109,6 +110,11 @@ uint64_t TorrentFile::getPieceLength()
     return 0;
 }
 
+bool TorrentFile::isSingleFileMode() const
+{
+    return m_singleFileMode;
+}
+
 void TorrentFile::parseFile(const std::string &path)
 {
     std::ifstream file(path, std::ifstream::in | std::ifstream::binary);
@@ -163,10 +169,12 @@ void TorrentFile::calculateFileSize()
     if (it != infoDict->end())
     {
         m_size = (uint64_t) bencast<BenInt*>(it->second)->getValue();
+        m_singleFileMode = true;
     }
     else
     {
         // For multi-file mode, must calculate the sum of each file's respective length
+        m_singleFileMode = false;
 
         // First get files list
         it = infoDict->find("files");

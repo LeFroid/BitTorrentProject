@@ -146,6 +146,7 @@ namespace network
         announceURL.setParameter("left", torrentFile->getFileSize());
         announceURL.setParameter("compact", 1);
         announceURL.setParameter("event", "started");
+        announceURL.setParameter("key", "magic");
 
         std::string requestText = http::Request::getText(announceURL);
         LOG_DEBUG("torrent_protocol.network", "Sending request as follows:\n", requestText);

@@ -90,7 +90,7 @@ namespace gui
     /// GUIObject virtual function implementations
     public:
         /// Attempts to create and draw the window
-        void draw() override;
+        virtual void draw() override;
         
         /// Closes and destroys the window
         void destroy() override;

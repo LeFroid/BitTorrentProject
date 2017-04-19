@@ -23,33 +23,22 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "TorrentFile.h"
-#include "TorrentState.h"
+#pragma once
 
-TorrentState::TorrentState(const std::string &torrentFilePath) :
-    m_file(std::make_shared<TorrentFile>(torrentFilePath)),
-    m_numPeers(0),
-    m_downloadComplete(false),
-    m_pieceMgr(m_file)
-{
-}
+#include "Window.h"
 
-std::shared_ptr<TorrentFile> &TorrentState::getTorrentFile()
+/**
+ * @class MainWindow
+ * @brief The parent window of the bittorrent client interface.
+ *        Contains torrent information table and utilities to add/remove
+ *        torrent files.
+ */
+class MainWindow : public gui::Window
 {
-    return m_file;
-}
+public:
+    /// MainWindow constructor - requires window name, width and height of window
+    MainWindow(std::string title, int width, int height);
 
-const uint32_t &TorrentState::getNumPeers()
-{
-    return m_numPeers;
-}
-
-void TorrentState::incrementPeerCount()
-{
-    ++m_numPeers;
-}
-
-void TorrentState::decrementPeerCount()
-{
-    --m_numPeers;
-}
+    /// Draws the window and its child objects
+    void draw() override;
+};

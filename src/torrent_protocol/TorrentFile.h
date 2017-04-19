@@ -68,6 +68,9 @@ public:
     /// Returns the number of bytes in each piece of the file (final piece be of a different length)
     uint64_t getPieceLength();
 
+    /// Returns true if torrent represents a single file, false if else
+    bool isSingleFileMode() const;
+
 private:
     /// Parses the torrent file with the given path, storing the decoded data into the meta info dictionary
     void parseFile(const std::string &path);
@@ -84,6 +87,9 @@ private:
 
     /// Stores the digest of the value of the info key from the torrent file
     SHA1Hash m_infoHash;
+
+    /// True if single file mode, false if else
+    bool m_singleFileMode;
 
     /// Metainfo contained in the torrent file
     std::shared_ptr<bencoding::BenDictionary> m_metaInfo;

@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ctime>
 #include "Socket.h"
 
+class TorrentFragment;
 class TorrentState;
 
 namespace network
@@ -53,7 +54,8 @@ namespace network
         /// Sets the shared pointer to the torrent state for the p2p connection
         void setTorrentState(std::shared_ptr<TorrentState> state);
 
-        //void requestPiece(uint64_t pieceNum);
+        /// Checks if client is eligible to request the piece being downloaded, and if so, sends a request to the peer
+        void tryToRequestPiece();
 
     protected:
         /// Called after the local client has successfully initiated a connection with a remote peer
@@ -72,6 +74,9 @@ namespace network
 
         /// Handles the bitfield message and contents sent by the peer
         void readBitfield(uint32_t length);
+
+        /// Handles the piece message and contents sent by the peer
+        void readPiece(uint32_t blockSize);
 
         /// Handles the request message when received from the peer
         void readRequest();
@@ -122,5 +127,11 @@ namespace network
 
         /// Torrent state pointer
         std::shared_ptr<TorrentState> m_torrentState;
+
+        /// Fragment (if any) being downloaded to the client
+        std::shared_ptr<TorrentFragment> m_fragmentDownload;
+
+        /// Total number of bytes downloaded from the current fragment
+        uint32_t m_fragBytesDownloaded;
     };
 }

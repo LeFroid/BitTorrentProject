@@ -23,33 +23,17 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "TorrentFile.h"
-#include "TorrentState.h"
+#include "MainWindow.h"
 
-TorrentState::TorrentState(const std::string &torrentFilePath) :
-    m_file(std::make_shared<TorrentFile>(torrentFilePath)),
-    m_numPeers(0),
-    m_downloadComplete(false),
-    m_pieceMgr(m_file)
+using namespace gui;
+
+MainWindow::MainWindow(std::string title, int width, int height) :
+    Window(title, width, height, false)
 {
 }
 
-std::shared_ptr<TorrentFile> &TorrentState::getTorrentFile()
+void MainWindow::draw()
 {
-    return m_file;
-}
-
-const uint32_t &TorrentState::getNumPeers()
-{
-    return m_numPeers;
-}
-
-void TorrentState::incrementPeerCount()
-{
-    ++m_numPeers;
-}
-
-void TorrentState::decrementPeerCount()
-{
-    --m_numPeers;
+    // draw child objects
+    Window::draw();
 }

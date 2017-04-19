@@ -22,7 +22,8 @@
 #include "FontStorage.h"
 #include "Keybinder.h"
 #include "ObjectManager.h"
-#include "Window.h"
+
+#include "MainWindow.h"
 
 using namespace bencoding;
 using namespace gui;
@@ -52,6 +53,9 @@ int main(int argc, char **argv)
 {
     // Output logs to current directory
     sLog.setLogDir("./");
+
+    // set log level of network (log file will be enormous if set to debug)
+    sLog.get("torrent_protocol.network")->SetLogLevel(LOG_ERROR);
 
     if (!Engine::initialize())
     {
@@ -107,8 +111,8 @@ int main(int argc, char **argv)
     }
     // End test on torrent file & tracker
 
-    // Spawn an empty window
-    Window *win = ObjectManager::getInstance()->createObject<Window>("BitTorrent Client", 1280, 800, false);
+    // Spawn the main window
+    MainWindow *win = ObjectManager::getInstance()->createObject<MainWindow>("BitTorrent Client", 1280, 800, false);
     win->draw();
     win->setBackgroundColor(Color(255, 255, 255, 255));
 
