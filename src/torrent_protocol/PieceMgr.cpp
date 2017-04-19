@@ -261,16 +261,8 @@ void PieceMgr::determineNextPiece()
 
 void PieceMgr::onAllFragmentsDownloaded()
 {
-    size_t pieceLength = m_pieceLength;
-
-    // Check if current piece is the last piece or not
-    if (m_currentPiece + 1 == m_pieceInfo.size())
-    {
-        int64_t finalPieceLen = m_pieceInfo.size() * m_pieceLength - m_fileSize;
-        if (finalPieceLen < 0)
-            finalPieceLen *= -1;
-        pieceLength = finalPieceLen;
-    }
+    // Determine piece length (either standard or length of the final piece)
+    size_t pieceLength = (m_currentPiece + 1 == m_pieceInfo.size()) ? m_finalPieceLen : m_pieceLength;
 
     // Combine data from each fragment into one array, get the digest, compare to expected value
     uint8_t *pieceData = new uint8_t[pieceLength];
