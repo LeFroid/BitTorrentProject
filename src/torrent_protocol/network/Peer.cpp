@@ -364,7 +364,7 @@ namespace network
         // Send handshake, followed by bitfield
         m_sentHandshake = true;
         send(std::move(mb));
-        sendBitfield();
+        //sendBitfield();
     }
 
     void Peer::sendBitfield()

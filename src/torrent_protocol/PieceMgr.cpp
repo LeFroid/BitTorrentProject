@@ -59,8 +59,8 @@ PieceMgr::PieceMgr(std::shared_ptr<TorrentFile> torrentFile) :
     m_piecesAvailable(torrentFile->getNumPieces()),
     m_pieceBeingDownloaded(),
     m_numPeersDownloading(0),
-    m_numPeersFinishedFragment(0)/*,
-    m_singleFileHandle()*/
+    m_numPeersFinishedFragment(0),
+    m_singleFileHandle()
 {
     m_fragmentsPerPiece = std::ceil(double(m_pieceLength) / DefaultFragmentLength);
 
@@ -77,6 +77,12 @@ PieceMgr::PieceMgr(std::shared_ptr<TorrentFile> torrentFile) :
         m_fragmentsInFinalPiece = 1;
     else
         m_fragmentsInFinalPiece = (uint32_t)ceil(double(m_finalPieceLen) / DefaultFragmentLength);
+}
+
+PieceMgr::~PieceMgr()
+{
+    if (m_singleFileHandle.is_open())
+        m_singleFileHandle.close();
 }
 
 bool PieceMgr::havePiece(uint32_t pieceIdx) const
@@ -117,6 +123,64 @@ const boost::dynamic_bitset<> &PieceMgr::getBitsetHave() const
 const uint64_t &PieceMgr::getNumBytesUploaded() const
 {
     return m_bytesUploaded;
+}
+
+bool PieceMgr::verifyFile()
+{
+    BenDictionary *infoDict = m_torrentFile->getInfoDictionary();
+    if (!infoDict)
+    {
+        LOG_ERROR("torrent_protocol.PieceMgr", "Could not fetch info dictionary to verify file contents!");
+        return false;
+    }
+
+    // Single-File mode
+    auto it = infoDict->find("name");
+    if (it == infoDict->end())
+    {
+        LOG_ERROR("torrent_protocol.PieceMgr", "Could not fetch name to verify file contents!");
+        return false;
+    }
+
+    // Get path to file: Should be {Download Directory} / {File Name}
+    std::string pathStr = eTorrentMgr.getDownloadDirectory() + bencast<BenString*>(it->second)->getValue();
+    // Open file if have not done so yet
+    if (!m_singleFileHandle.is_open())
+        m_singleFileHandle.open(pathStr, std::fstream::in | std::fstream::binary);
+
+    // Attempt to fetch the torrent file's digest for the current piece
+    const std::string &digestStr = m_digestString->getValue();
+    if (digestStr.size() < SHA_DIGEST_LENGTH * m_torrentFile->getNumPieces())
+    {
+        LOG_ERROR("torrent_protocol.PieceMgr", "Digest string from torrent file is too small!");
+        return false;
+    }
+
+    uint8_t *pieceBuf = new uint8_t[m_pieceLength];
+    std::string digestStrTmp;
+    SHA1Hash hash;
+    for (uint32_t pieceNum = 0; pieceNum < m_pieceInfo.size(); ++pieceNum)
+    {
+        digestStrTmp = digestStr.substr(pieceNum * SHA_DIGEST_LENGTH, SHA_DIGEST_LENGTH);
+        size_t pieceLen = (pieceNum == m_pieceInfo.size() - 1) ? m_finalPieceLen : m_pieceLength;
+        memset(pieceBuf, 0, m_pieceLength);
+        m_singleFileHandle.seekg(pieceNum * pieceLen);
+        m_singleFileHandle.read((char*)pieceBuf, pieceLen);
+
+        hash.update(pieceBuf, pieceLen);
+        hash.finalize();
+        // If hashes match, store the piece onto the disk, set m_pieceInfo[m_currentPiece] to 1
+        if (memcmp(hash.getDigest(), digestStrTmp.c_str(), SHA_DIGEST_LENGTH) != 0)
+        {
+            LOG_ERROR("torrent_protocol.PieceMgr", "Digest of piece ", pieceNum, " invalid! digestPtr = ", digestStrTmp);
+            delete[] pieceBuf;
+            return false;
+        }
+        hash.initialize();
+    }
+
+    delete[] pieceBuf;
+    return true;
 }
 
 void PieceMgr::markPieceAvailable(const uint32_t &pieceIdx)
@@ -181,23 +245,27 @@ std::shared_ptr<TorrentFragment> PieceMgr::getFragmentToUpload(uint32_t pieceIdx
             boost::filesystem::path filePath(pathStr);
 
             // Open file
+            // Open file if have not done so yet
+            if (!m_singleFileHandle.is_open())
+                m_singleFileHandle.open(pathStr, std::fstream::in | std::fstream::out | std::fstream::binary);
+            /*
             std::ifstream fIn(pathStr, std::ofstream::in | std::ofstream::binary);
             if (!fIn.is_open())
-                return fragPtr;
+                return fragPtr;*/
 
             // Get file length to ensure valid request
-            fIn.seekg(0, fIn.end);
-            uint64_t fileLen = fIn.tellg();
-            fIn.seekg(0, fIn.beg);
+            m_singleFileHandle.seekg(0, m_singleFileHandle.end);
+            uint64_t fileLen = m_singleFileHandle.tellg();
+            m_singleFileHandle.seekg(0, m_singleFileHandle.beg);
 
             if (fileLen < (m_pieceLength * pieceIdx) + offset + length)
                 return fragPtr;
 
             // Seek to position, read data into fragment structure, done
             fragPtr = std::make_shared<TorrentFragment>(pieceIdx, offset, length);
-            fIn.seekg(m_pieceLength * pieceIdx + offset);
-            fIn.read((char*)fragPtr->Data, length);
-            fIn.close();
+            m_singleFileHandle.seekg(m_pieceLength * pieceIdx + offset);
+            m_singleFileHandle.read((char*)fragPtr->Data, length);
+            //fIn.close();
 
             // Increment bytes uploaded counter
             m_bytesUploaded += length;
@@ -296,18 +364,19 @@ void PieceMgr::onAllFragmentsDownloaded()
 
     // Attempt to fetch the torrent file's digest for the current piece
     const std::string &digestStr = m_digestString->getValue();
-    if (digestStr.size() < SHA_DIGEST_LENGTH * (m_currentPiece + 1))
+    if (digestStr.size() < SHA_DIGEST_LENGTH * m_pieceInfo.size())
     {
         LOG_ERROR("torrent_protocol.PieceMgr", "Digest string from torrent file is too small!");
         delete[] pieceData;
         return;
     }
 
-    uint8_t *digestPtr = (uint8_t*)digestStr.c_str();
-    digestPtr += (SHA_DIGEST_LENGTH * m_currentPiece);
+    /*uint8_t *digestPtr = (uint8_t*)digestStr.c_str();
+    digestPtr += (SHA_DIGEST_LENGTH * m_currentPiece);*/
+    std::string digestStrTmp = digestStr.substr(m_currentPiece * SHA_DIGEST_LENGTH, SHA_DIGEST_LENGTH);
 
     // If hashes match, store the piece onto the disk, set m_pieceInfo[m_currentPiece] to 1
-    if (memcmp(hash.getDigest(), digestPtr, SHA_DIGEST_LENGTH) == 0)
+    if (memcmp(hash.getDigest(), digestStrTmp.c_str(), SHA_DIGEST_LENGTH) == 0)
     {
         writePieceToDisk(pieceData, pieceLength);
         LOG_INFO("torrent_protocol.PieceMgr", "Verified piece ", m_currentPiece, ", writing to disk. Have downloaded ", m_pieceInfo.count(), " of ", m_pieceInfo.size(), " pieces.");
@@ -349,7 +418,7 @@ void PieceMgr::writePieceToDisk(uint8_t *data, size_t pieceLength)
         // Create base directory if not already extant
         boost::system::error_code ec;
         if (!boost::filesystem::exists(basePath, ec))
-            boost::filesystem::create_directory(basePath);
+            boost::filesystem::create_directory(basePath, ec);
 
         // Next, iterate through list of files until first one found with offset of piece to save
         int64_t pieceOffset = m_currentPiece * m_pieceLength;
@@ -367,16 +436,26 @@ void PieceMgr::writePieceToDisk(uint8_t *data, size_t pieceLength)
                 {
                     // Iterate through path list, appending each item to the filePath object
                     BenList *pathList = bencast<BenList*>(pathItr->second);
+                    auto pathListLen = pathList->size();
                     boost::filesystem::path filePath = basePath;
 
+                    size_t currentPathLen = 1;
                     for (auto pathItr2 = pathList->begin(); pathItr2 != pathList->end(); ++pathItr2)
                     {
                         boost::filesystem::path subPath(bencast<BenString*>(*pathItr2)->getValue());
                         filePath /= subPath;
+
+                        // Check if we haven't yet reached the end file, and if not, determine if the
+                        // parent directory needs to be created
+                        if (currentPathLen++ < pathListLen)
+                        {
+                            if (!boost::filesystem::exists(filePath, ec))
+                                boost::filesystem::create_directory(filePath, ec);
+                        }
                     }
 
-                    // Finally, open the file, write data into it
-                    //TODO: make sure directory exists, create or open file, resize if necessary, write data into file
+                    // Finally, open the file, write data into it, if length of current piece + offset > length of file, add
+                    // the next part of the current piece to the next file(s) until all has been written out
                 }
                 break;
             }
@@ -392,13 +471,26 @@ void PieceMgr::writePieceToDisk(uint8_t *data, size_t pieceLength)
             std::string pathStr = eTorrentMgr.getDownloadDirectory() + bencast<BenString*>(it->second)->getValue();
             boost::filesystem::path filePath(pathStr);
 
-            // Open file
-            std::ofstream fOut(pathStr, std::ofstream::out | std::ofstream::binary);
+            // Open file if have not done so yet
+            if (!m_singleFileHandle.is_open())
+            {
+                m_singleFileHandle.open(pathStr, std::fstream::binary | std::fstream::in | std::fstream::out);
+                // Create file if non-existant
+                if (!m_singleFileHandle)
+                {
+                    m_singleFileHandle.open(pathStr, std::fstream::binary | std::fstream::trunc | std::fstream::out);
+                    m_singleFileHandle.close();
+                    // re-open with original flags
+                    m_singleFileHandle.open(pathStr, std::fstream::binary | std::fstream::in | std::fstream::out);
+                }
+            }
 
             // Resize file if necessary
             boost::system::error_code ec;
             if (boost::filesystem::file_size(filePath, ec) < m_fileSize)
             {
+                m_singleFileHandle.close();
+
                 if (ec)
                     LOG_ERROR("torrent_protocol.PieceMgr", "Error reported from calling boost::filesystem::file_size on ", pathStr, " , Error message: ", ec.message());
 
@@ -406,15 +498,16 @@ void PieceMgr::writePieceToDisk(uint8_t *data, size_t pieceLength)
 
                 if (ec)
                     LOG_ERROR("torrent_protocol.PieceMgr", "Error reported from calling boost::filesystem::resize_file on ", pathStr, " , Error message: ", ec.message());
+
+                m_singleFileHandle.open(pathStr, std::fstream::binary | std::fstream::in | std::fstream::out);
             }
 
             // Seek to appropriate position in file
-            fOut.seekp(m_currentPiece * m_pieceLength);
+            m_singleFileHandle.seekp(m_currentPiece * m_pieceLength);
 
-            // Write data, close file
-            fOut.write((const char*)data, pieceLength);
-            fOut.flush();
-            fOut.close();
+            // Write data
+            m_singleFileHandle.write((char*)&data[0], pieceLength);
+            m_singleFileHandle.flush();
         }
     }
 

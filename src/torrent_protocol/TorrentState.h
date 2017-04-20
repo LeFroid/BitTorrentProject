@@ -66,6 +66,9 @@ public:
     /// Returns the total number of bytes uploaded to peers
     const uint64_t &getNumBytesUploaded() const { return m_pieceMgr.getNumBytesUploaded(); }
 
+    /// Returns true if the integrity of the file is confirmed, false if else.
+    bool verifyFile() { return m_pieceMgr.verifyFile(); }
+
 protected:
     /// Called when a new peer has been associated with this torrent object
     void incrementPeerCount();

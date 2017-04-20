@@ -103,6 +103,7 @@ std::shared_ptr<TorrentState> TorrentMgr::addTorrent(const std::string &torrentP
             m_torrentMap[torrentRef->getInfoHash()] = retVal;
         }
 
+
         // Add new deadline timer for connecting to tracker
         std::unique_ptr<boost::asio::deadline_timer> trackerTimer(new boost::asio::deadline_timer(m_ioService));
         m_trackerTimers.push_back(std::move(trackerTimer));
@@ -110,19 +111,10 @@ std::shared_ptr<TorrentState> TorrentMgr::addTorrent(const std::string &torrentP
         // Connect to tracker immediately, then every few minutes
         connectToTracker(m_trackerTimers.at(m_trackerTimers.size() - 1).get(), torrentRef->getInfoHash());
 
-        // Instantiate tracker client
-        /*auto trackerClient = std::make_shared<network::TrackerClient>(m_ioService, network::Socket::Mode::TCP);
-        trackerClient->setPeerID(m_peerID);
-        trackerClient->setTorrentState(retVal);
-        trackerClient->setConnectionMgr(m_connectionMgr);
-
-        // Connect client to tracker service
-        auto trackerEndpoint = trackerClient->findTrackerEndpointTCP();
-        trackerClient->connect(trackerEndpoint);
-
-        // Add tracker client to its connection manager
-        m_trackerMgr.addConnection(trackerClient);*/
-
+        /*if (retVal->verifyFile())
+            LOG_INFO("torrent_protocol.mgr", "Each piece of file verified!");
+        else
+            LOG_INFO("torrent_protocol.mgr", "Could not verify file!");*/
         return retVal;
     }
 

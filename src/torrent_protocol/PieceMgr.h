@@ -55,6 +55,9 @@ public:
      */
     explicit PieceMgr(std::shared_ptr<TorrentFile> torrentFile);
 
+    /// Destructor
+    ~PieceMgr();
+
     /// Returns true if the piece is available on the client side, false if else
     bool havePiece(uint32_t pieceIdx) const;
 
@@ -69,6 +72,9 @@ public:
 
     /// Returns the number of bytes uploaded to other peers
     const uint64_t &getNumBytesUploaded() const;
+
+    /// Verifies the contents of the torrent file, returning true on successful verification
+    bool verifyFile();
 
     //todo: ability to serialize the pieces already verified and downloaded to a config file,
     //      so application can resume downloading after program exits
@@ -154,5 +160,5 @@ private:
     std::mutex m_pieceLock;
 
     /// Handle used when performing I/O in single file download mode
-    //std::fstream m_singleFileHandle;
+    std::fstream m_singleFileHandle;
 };
