@@ -51,6 +51,7 @@ PieceMgr::PieceMgr(std::shared_ptr<TorrentFile> torrentFile) :
     m_fragmentsPerPiece(0),
     m_fragmentsInFinalPiece(0),
     m_fileSize(torrentFile->getFileSize()),
+    m_bytesUploaded(0),
     m_torrentFile(torrentFile),
     m_digestString(torrentFile->getDigestString()),
     m_currentPiece(0),
@@ -58,19 +59,24 @@ PieceMgr::PieceMgr(std::shared_ptr<TorrentFile> torrentFile) :
     m_piecesAvailable(torrentFile->getNumPieces()),
     m_pieceBeingDownloaded(),
     m_numPeersDownloading(0),
-    m_numPeersFinishedFragment(0)
+    m_numPeersFinishedFragment(0)/*,
+    m_singleFileHandle()*/
 {
     m_fragmentsPerPiece = std::ceil(double(m_pieceLength) / DefaultFragmentLength);
 
     /// Calculate information about the final piece (size, number of fragments)
-    int64_t finalPieceLen = m_pieceInfo.size() * m_pieceLength - m_fileSize;
-    if (finalPieceLen < 0)
-        finalPieceLen *= -1;
-    m_finalPieceLen = (uint32_t)finalPieceLen;
+    int64_t finalPieceLen = (int64_t)m_torrentFile->getNumPieces() * (int64_t)m_torrentFile->getPieceLength();
+    if (m_fileSize < finalPieceLen)
+        m_finalPieceLen = finalPieceLen - m_fileSize;
+    else if (m_fileSize > finalPieceLen)
+        m_finalPieceLen = m_fileSize - finalPieceLen;
+    else
+        m_finalPieceLen = m_pieceLength;
+
     if (DefaultFragmentLength > finalPieceLen)
         m_fragmentsInFinalPiece = 1;
     else
-        m_fragmentsInFinalPiece = (uint32_t)ceil(double(finalPieceLen) / DefaultFragmentLength);
+        m_fragmentsInFinalPiece = (uint32_t)ceil(double(m_finalPieceLen) / DefaultFragmentLength);
 }
 
 bool PieceMgr::havePiece(uint32_t pieceIdx) const
@@ -85,7 +91,12 @@ const uint32_t &PieceMgr::getCurrentPieceNum()
 {
     std::lock_guard<std::mutex> lock(m_pieceLock);
 
-    if ((!m_pieceInfo.all() && m_pieceInfo[m_currentPiece])
+    if (m_pieceInfo.all())
+    {
+        m_currentPiece = m_pieceInfo.size();
+        return m_currentPiece;
+    }
+    else if (m_pieceInfo[m_currentPiece]
             || !m_piecesAvailable[m_currentPiece]
             || m_pieceBeingDownloaded.empty())
         determineNextPiece();
@@ -96,6 +107,16 @@ const uint32_t &PieceMgr::getCurrentPieceNum()
 uint64_t PieceMgr::getNumPiecesHave()
 {
     return m_pieceInfo.count();
+}
+
+const boost::dynamic_bitset<> &PieceMgr::getBitsetHave() const
+{
+    return m_pieceInfo;
+}
+
+const uint64_t &PieceMgr::getNumBytesUploaded() const
+{
+    return m_bytesUploaded;
 }
 
 void PieceMgr::markPieceAvailable(const uint32_t &pieceIdx)
@@ -119,12 +140,8 @@ std::shared_ptr<TorrentFragment> PieceMgr::getFragmentToDownload()
     std::shared_ptr<TorrentFragment> fragPtr(nullptr);
 
     uint32_t activeFragCount = (m_numPeersDownloading + m_numPeersFinishedFragment) % m_pieceBeingDownloaded.size();
-    //if (activeFragCount < m_pieceBeingDownloaded.size())
-    //{
-        //LOG_DEBUG("torrent_protocol.PieceMgr", "Active frag count = ", activeFragCount, " peers downloading = ", m_numPeersDownloading, ", peers finished = ", m_numPeersFinishedFragment);
-        fragPtr = m_pieceBeingDownloaded.at(activeFragCount);
-        ++m_numPeersDownloading;
-    //}
+    fragPtr = m_pieceBeingDownloaded.at(activeFragCount);
+    ++m_numPeersDownloading;
 
     return fragPtr;
 }
@@ -181,6 +198,9 @@ std::shared_ptr<TorrentFragment> PieceMgr::getFragmentToUpload(uint32_t pieceIdx
             fIn.seekg(m_pieceLength * pieceIdx + offset);
             fIn.read((char*)fragPtr->Data, length);
             fIn.close();
+
+            // Increment bytes uploaded counter
+            m_bytesUploaded += length;
         }
     }
     return fragPtr;
@@ -207,13 +227,10 @@ void PieceMgr::onFragmentDownloaded(uint32_t pieceIdx)
 
 uint32_t PieceMgr::getNumFragments(uint32_t pieceIdx)
 {
-    // calculate number of fragments in the last piece
-    if (pieceIdx + 1 == m_pieceInfo.size())
-    {
-        return m_fragmentsInFinalPiece;
-    }
+    if (pieceIdx >= m_pieceInfo.size())
+        return 0;
 
-    return m_fragmentsPerPiece;
+    return (pieceIdx + 1 == m_pieceInfo.size()) ? m_fragmentsInFinalPiece : m_fragmentsPerPiece;
 }
 
 void PieceMgr::determineNextPiece()
@@ -251,6 +268,8 @@ void PieceMgr::determineNextPiece()
 
                 currentFragmentOffset += currentFragmentLength;
                 currentFragmentLength = std::min(DefaultFragmentLength, pieceLength - currentFragmentOffset);
+                if (currentFragmentLength == 0)
+                    return;
             }
 
             return;
@@ -394,6 +413,7 @@ void PieceMgr::writePieceToDisk(uint8_t *data, size_t pieceLength)
 
             // Write data, close file
             fOut.write((const char*)data, pieceLength);
+            fOut.flush();
             fOut.close();
         }
     }

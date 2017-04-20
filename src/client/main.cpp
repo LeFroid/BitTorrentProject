@@ -55,7 +55,7 @@ int main(int argc, char **argv)
     sLog.setLogDir("./");
 
     // set log level of network (log file will be enormous if set to debug)
-    sLog.get("torrent_protocol.network")->SetLogLevel(LOG_ERROR);
+    //sLog.get("torrent_protocol.network")->SetLogLevel(LOG_ERROR);
 
     if (!Engine::initialize())
     {
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
     // End test on torrent file & tracker
 
     // Spawn the main window
-    MainWindow *win = ObjectManager::getInstance()->createObject<MainWindow>("BitTorrent Client", 1280, 800, false);
+    MainWindow *win = ObjectManager::getInstance()->createObject<MainWindow>("BitTorrent Client", 1280, 800);
     win->draw();
     win->setBackgroundColor(Color(255, 255, 255, 255));
 

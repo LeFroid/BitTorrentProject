@@ -86,8 +86,17 @@ namespace network
         /// Sends the client's handshake to the peer
         void sendHandshake();
 
+        /// Sends the client's bitfield to the peer
+        void sendBitfield();
+
         /// Sends the interested message to the peer
         void sendInterested();
+
+        /// Sends the choke message to the peer
+        void sendChoke();
+
+        /// Sends the unchoke message to the peer
+        void sendUnchoke();
 
         /// Sends a fragment of the piece at the given index, with an offset of the piece and
         /// specified length to the peer 

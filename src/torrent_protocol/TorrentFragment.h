@@ -59,6 +59,10 @@ struct TorrentFragment
     void WriteData(char *buffer, size_t dataOffset, size_t bufferLen)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
+
+        if (buffer == nullptr || Data == nullptr || dataOffset + bufferLen > Length)
+            return;
+
         memcpy(&Data[dataOffset], buffer, bufferLen);
     }
 

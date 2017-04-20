@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 TorrentState::TorrentState(const std::string &torrentFilePath) :
     m_file(std::make_shared<TorrentFile>(torrentFilePath)),
     m_numPeers(0),
+    m_numPeersCanUnchoke(5),
     m_downloadComplete(false),
     m_pieceMgr(m_file)
 {
@@ -52,4 +53,19 @@ void TorrentState::incrementPeerCount()
 void TorrentState::decrementPeerCount()
 {
     --m_numPeers;
+}
+
+bool TorrentState::canUnchokePeer()
+{
+    if (m_numPeersCanUnchoke.load() > 0)
+    {
+        --m_numPeersCanUnchoke;
+        return true;
+    }
+    return false;
+}
+
+void TorrentState::onPeerChoked()
+{
+    ++m_numPeersCanUnchoke;
 }

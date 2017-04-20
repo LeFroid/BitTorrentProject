@@ -26,6 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include <boost/dynamic_bitset.hpp>
+#include <fstream>
 #include <memory>
 #include <vector>
 
@@ -62,6 +63,12 @@ public:
 
     /// Returns the total number of pieces that have been downloaded & verified
     uint64_t getNumPiecesHave();
+
+    /// Returns a bitset of the pieces that the client has
+    const boost::dynamic_bitset<> &getBitsetHave() const;
+
+    /// Returns the number of bytes uploaded to other peers
+    const uint64_t &getNumBytesUploaded() const;
 
     //todo: ability to serialize the pieces already verified and downloaded to a config file,
     //      so application can resume downloading after program exits
@@ -104,7 +111,7 @@ private:
     uint32_t m_pieceLength;
 
     /// Number of bytes in the final piece of the torrent
-    uint32_t m_finalPieceLen;
+    int64_t m_finalPieceLen;
 
     /// Number of fragments per typical piece
     uint32_t m_fragmentsPerPiece;
@@ -114,6 +121,9 @@ private:
 
     /// Size of the torrent file
     uint64_t m_fileSize;
+
+    /// Number of bytes uploaded to remote peers (info sent to tracker)
+    uint64_t m_bytesUploaded;
 
     /// Shared pointer to the torrent file
     std::shared_ptr<TorrentFile> m_torrentFile;
@@ -143,5 +153,6 @@ private:
     /// Used to synchronize requests about piece downloading or information
     std::mutex m_pieceLock;
 
-    //have std::ofstream as member for case of single file mode
+    /// Handle used when performing I/O in single file download mode
+    //std::fstream m_singleFileHandle;
 };

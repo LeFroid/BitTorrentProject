@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <boost/asio.hpp>
 #include <boost/dynamic_bitset.hpp>
 #include <cstdint>
+#include <atomic>
 #include <memory>
 
 #include "PieceMgr.h"
@@ -62,6 +63,9 @@ public:
     /// Returns the index of the piece currently being downloaded (or about to be downloaded)
     const uint32_t &getCurrentPieceNum() { return m_pieceMgr.getCurrentPieceNum(); }
 
+    /// Returns the total number of bytes uploaded to peers
+    const uint64_t &getNumBytesUploaded() const { return m_pieceMgr.getNumBytesUploaded(); }
+
 protected:
     /// Called when a new peer has been associated with this torrent object
     void incrementPeerCount();
@@ -69,12 +73,21 @@ protected:
     /// Called when a peer has been disassociated from this torrent object
     void decrementPeerCount();
 
+    /// Returns true if it will be allowed to unchoke another peer, false if else
+    bool canUnchokePeer();
+
+    /// Called when a peer has been choked (increments count of peers to allow to be unchoked)
+    void onPeerChoked();
+
     /// Sets the flag for the piece at the given index as being available for downloading from a peer
     void markPieceAvailable(uint32_t pieceIdx) { m_pieceMgr.markPieceAvailable(pieceIdx); }
 
     /// Reads the bitset from a peer of pieces they do or dont have, setting the set of available
     /// pieces to the union of the currently available pieces and the peer's pieces
     void readPeerBitset(const boost::dynamic_bitset<> &set) { m_pieceMgr.readPeerBitset(set); }
+
+    /// Returns a bitset of the pieces that the client has
+    const boost::dynamic_bitset<> &getBitsetHave() const { return m_pieceMgr.getBitsetHave(); }
 
     /// Returns a pointer to a torrent fragment structure that needs to be downloaded.
     /// If the fragments associated with the current piece have already been assigned,
@@ -94,6 +107,9 @@ private:
 
     /// Current number of peers which the client is connected to for the torrent file
     uint32_t m_numPeers;
+
+    /// Counter of peers that will be allowed to be unchoked
+    std::atomic<uint32_t> m_numPeersCanUnchoke;
 
     /// True if download is complete, false if else
     bool m_downloadComplete;

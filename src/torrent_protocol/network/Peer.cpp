@@ -67,7 +67,11 @@ namespace network
     Peer::~Peer()
     {
         if (m_torrentState.get())
-            m_torrentState->decrementPeerCount();        
+        {
+            if (!m_amChoking)
+                m_torrentState->onPeerChoked();
+            m_torrentState->decrementPeerCount();
+        }
     }
 
     void Peer::setTorrentState(std::shared_ptr<TorrentState> state)
@@ -158,11 +162,18 @@ namespace network
             case 2:
                 LOG_DEBUG("torrent_protocol.network", "Interested message received by peer");
                 m_peerInterested = true;
+                if (m_torrentState->canUnchokePeer())
+                    sendUnchoke();
                 break;
             // Not interested [no payload]
             case 3:
                 LOG_DEBUG("torrent_protocol.network", "Not interested message received by peer");
                 m_peerInterested = false;
+                if (!m_amChoking)
+                {
+                    sendChoke();
+                    m_torrentState->onPeerChoked();
+                }
                 break;
             // Have: <len=0005><id=4><piece index>
             case 4:
@@ -350,8 +361,42 @@ namespace network
         mb.write((const char*)m_torrentState->getTorrentFile()->getInfoHash(), 20);
         mb.write(eTorrentMgr.getPeerID(), 20);
 
-        // Send handshake
+        // Send handshake, followed by bitfield
         m_sentHandshake = true;
+        send(std::move(mb));
+        sendBitfield();
+    }
+
+    void Peer::sendBitfield()
+    {
+        const boost::dynamic_bitset<> &bitset = m_torrentState->getBitsetHave();
+        const size_t bytesToSend = bitset.size() / 8;
+        size_t bitsetPos = 0;
+
+        MutableBuffer mb(4 + 1 + bytesToSend);
+        mb << uint32_t(1 + bytesToSend);        // Length
+        mb << uint8_t(5);                       // Message ID
+        for (size_t i = 0; i < bytesToSend; ++i)
+        {
+            if (bitsetPos + 7 >= bitset.size())
+            {
+                mb << uint8_t(0);
+                break;
+            }
+            uint8_t currentByte = 0;
+            currentByte |= (bitset[bitsetPos]     << 7);
+            currentByte |= (bitset[bitsetPos + 1] << 6);
+            currentByte |= (bitset[bitsetPos + 2] << 5);
+            currentByte |= (bitset[bitsetPos + 3] << 4);
+            currentByte |= (bitset[bitsetPos + 4] << 3);
+            currentByte |= (bitset[bitsetPos + 5] << 2);
+            currentByte |= (bitset[bitsetPos + 6] << 1);
+            currentByte |= (bitset[bitsetPos + 7]);
+            mb << currentByte;
+
+            bitsetPos += 8;
+        }
+
         send(std::move(mb));
     }
 
@@ -360,6 +405,22 @@ namespace network
         MutableBuffer mb(4 + 1);
         mb << uint32_t(1);       // Length
         mb << uint8_t(2);        // Message ID
+        send(std::move(mb));
+    }
+
+    void Peer::sendChoke()
+    {
+        MutableBuffer mb(4 + 1);
+        mb << uint32_t(1);      // Length
+        mb << uint8_t(0);       // Message ID
+        send(std::move(mb));
+    }
+
+    void Peer::sendUnchoke()
+    {
+        MutableBuffer mb(4 + 1);
+        mb << uint32_t(1);       // Length
+        mb << uint8_t(1);        // Message ID
         send(std::move(mb));
     }
 
