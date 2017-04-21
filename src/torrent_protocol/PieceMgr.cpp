@@ -60,7 +60,8 @@ PieceMgr::PieceMgr(std::shared_ptr<TorrentFile> torrentFile) :
     m_pieceBeingDownloaded(),
     m_numPeersDownloading(0),
     m_numPeersFinishedFragment(0),
-    m_singleFileHandle()
+    m_singleFileHandle(),
+    m_diskFiles()
 {
     m_fragmentsPerPiece = std::ceil(double(m_pieceLength) / DefaultFragmentLength);
 
@@ -81,8 +82,8 @@ PieceMgr::PieceMgr(std::shared_ptr<TorrentFile> torrentFile) :
     /// Initialize file handle(s) for either single- or multi-file mode
     if (m_torrentFile->isSingleFileMode())
         initializeSingleFileHandle();
-    //else
-    //    initializeMultiFile();
+    else
+        initializeMultiFileHandles();
 }
 
 PieceMgr::~PieceMgr()
@@ -383,63 +384,32 @@ void PieceMgr::writePieceToDisk(uint8_t *data, size_t pieceLength)
     }
 
     // Determine if single or multi file mode
-    auto it = infoDict->find("files");
-    if (it != infoDict->end())
+    if (m_diskFiles.size() > 1)
     {
         // Multi-File mode
-        BenList *fileList = bencast<BenList*>(it->second);
-
-        // Get the path which files will be placed into
-        std::string basePathStr = eTorrentMgr.getDownloadDirectory();
-        it = infoDict->find("name");
-        if (it != infoDict->end())
-            basePathStr.append(bencast<BenString*>(it->second)->getValue());
-        boost::filesystem::path basePath(basePathStr);
-
-        // Create base directory if not already extant
-        boost::system::error_code ec;
-        if (!boost::filesystem::exists(basePath, ec))
-            boost::filesystem::create_directory(basePath, ec);
-
-        // Next, iterate through list of files until first one found with offset of piece to save
-        int64_t pieceOffset = m_currentPiece * m_pieceLength;
-        int64_t filesLength = 0;
-        for (auto fileIt = fileList->begin(); fileIt != fileList->end(); ++fileIt)
+        uint64_t pieceOffset = m_currentPiece * m_pieceLength;
+        uint64_t endPos = pieceOffset + (uint64_t)pieceLength;
+        for (size_t i = 0; i < m_diskFiles.size(); ++i)
         {
-            BenDictionary *fileDict = bencast<BenDictionary*>(*fileIt);
-            auto lengthIt = fileDict->find("length");
-            filesLength += (bencast<BenInt*>(lengthIt->second)->getValue());
-            if (filesLength >= pieceOffset)
-            {
-                // Get full path to file
-                auto pathItr = fileDict->find("path");
-                if (pathItr != fileDict->end())
-                {
-                    // Iterate through path list, appending each item to the filePath object
-                    BenList *pathList = bencast<BenList*>(pathItr->second);
-                    auto pathListLen = pathList->size();
-                    boost::filesystem::path filePath = basePath;
+            FileInfo *file = m_diskFiles.at(i).get();
+            
+            // Check whether or not to write to this file
+            if ((pieceOffset > file->Offset + file->Length
+                       && endPos > file->Offset + file->Length)
+                   || (pieceOffset < file->Offset && endPos < file->Offset))
+              continue;
 
-                    size_t currentPathLen = 1;
-                    for (auto pathItr2 = pathList->begin(); pathItr2 != pathList->end(); ++pathItr2)
-                    {
-                        boost::filesystem::path subPath(bencast<BenString*>(*pathItr2)->getValue());
-                        filePath /= subPath;
+            // Calculate where to write into file, how much data to write into file,
+            // and which section of data buffer to read from
+            uint64_t filePos = (pieceOffset >= file->Offset) ? pieceOffset - file->Offset : 0;
+            int64_t pieceLenInFile = std::min(endPos - file->Offset, file->Length) - filePos;
 
-                        // Check if we haven't yet reached the end file, and if not, determine if the
-                        // parent directory needs to be created
-                        if (currentPathLen++ < pathListLen)
-                        {
-                            if (!boost::filesystem::exists(filePath, ec))
-                                boost::filesystem::create_directory(filePath, ec);
-                        }
-                    }
-
-                    // Finally, open the file, write data into it, if length of current piece + offset > length of file, add
-                    // the next part of the current piece to the next file(s) until all has been written out
-                }
-                break;
-            }
+            uint64_t dataIdx = (file->Offset > pieceOffset) ? file->Offset - pieceOffset : 0;
+        
+            // Write data
+            file->Handle.seekp(filePos);
+            file->Handle.write((char*)&data[dataIdx], pieceLenInFile);
+            file->Handle.flush();
         }
     }
     else
@@ -502,6 +472,107 @@ void PieceMgr::initializeSingleFileHandle()
             // Re-open file with original flags
             m_singleFileHandle.open(pathStr, std::fstream::binary | std::fstream::in | std::fstream::out);
         }
+    }
+}
+
+void PieceMgr::initializeMultiFileHandles()
+{
+    // Get info dictionary and file list 
+    BenDictionary *infoDict = m_torrentFile->getInfoDictionary();
+    if (!infoDict)
+    {
+        LOG_ERROR("torrent_protocol.PieceMgr", "Unable to retrieve pointer to Info Dictionary, will not be reading or writing data to disk.");
+        return;
+    }
+    auto it = infoDict->find("files");
+    if (it == infoDict->end())
+    {
+        LOG_ERROR("torrent_protocol.PieceMgr", "Unable to get file information from info dictionary. No file I/O will be performed.");
+        return;
+    }
+
+    BenList *fileList = bencast<BenList*>(it->second);
+
+    // Get the path which files will be placed into
+    std::string basePathStr = eTorrentMgr.getDownloadDirectory();
+    it = infoDict->find("name");
+    if (it != infoDict->end())
+        basePathStr.append(bencast<BenString*>(it->second)->getValue());
+    boost::filesystem::path basePath(basePathStr);
+
+    // Create base directory if not already extant
+    boost::system::error_code ec;
+    if (!boost::filesystem::exists(basePath, ec))
+        boost::filesystem::create_directory(basePath, ec);
+
+    // Iterate through list of files, opening and/or creating them before appending to vector of FileInfo structures 
+    uint64_t offset = 0;
+    for (auto fileIt = fileList->begin(); fileIt != fileList->end(); ++fileIt)
+    {
+        std::unique_ptr<FileInfo> currentFile(new FileInfo);
+
+        BenDictionary *fileDict = bencast<BenDictionary*>(*fileIt);
+        auto lengthIt = fileDict->find("length");
+        if (lengthIt == fileDict->end())
+        {
+            LOG_ERROR("torrent_protocol.PieceMgr", "Unable to get length of file from info dictionary. Skipping file...");
+            continue;
+        }
+
+        // Set length and offset of current file, then set the offset of the next file
+        currentFile->Length = bencast<BenInt*>(lengthIt->second)->getValue();
+        currentFile->Offset = offset;
+        offset += currentFile->Length;
+
+        // Get path to file
+        auto pathItr = fileDict->find("path");
+        if (pathItr == fileDict->end())
+        {
+            LOG_ERROR("torrent_protocol.PieceMgr", "Unable to find path of file in info dictionary. Skipping...");
+            continue;
+        }
+        
+        // Iterate through path list, creating any subdirectories along the way that do not exist
+        BenList *pathList = bencast<BenList*>(pathItr->second);
+        auto pathListLen = pathList->size();
+
+        boost::filesystem::path filePath = basePath;
+        size_t currentPathLen = 1;
+
+        for (auto pathItr2 = pathList->begin(); pathItr2 != pathList->end(); ++pathItr2)
+        {
+            boost::filesystem::path subPath(bencast<BenString*>(*pathItr2)->getValue());
+            filePath /= subPath;
+
+            // determine if parent directory needs to be created (every element in list except last refers to a directory)
+            if (currentPathLen++ < pathListLen)
+            {
+                if (!boost::filesystem::exists(filePath, ec))
+                    boost::filesystem::create_directory(filePath, ec);
+            }
+        }
+
+        // Open the file and create it if it does not yet exist
+        auto fPathStr = filePath.string();
+        currentFile->Handle.open(fPathStr, std::fstream::binary | std::fstream::in | std::fstream::out);
+        if (!currentFile->Handle)
+        {
+            currentFile->Handle.open(fPathStr, std::fstream::binary | std::fstream::trunc | std::fstream::out);
+            currentFile->Handle.close();
+
+            if (boost::filesystem::file_size(fPathStr, ec) < currentFile->Length)
+            {
+                if (ec)
+                    LOG_ERROR("torrent_protocol.PieceMgr", "Error reported from calling boost::filesystem::file_size on ", fPathStr, " , Error message: ", ec.message());
+                boost::filesystem::resize_file(fPathStr, currentFile->Length, ec);
+                if (ec)
+                    LOG_ERROR("torrent_protocol.PieceMgr", "Error reported from calling boost::filesystem::resize_file on ", fPathStr, " , Error message: ", ec.message());
+
+                // Re-open file with original flags
+                currentFile->Handle.open(fPathStr, std::fstream::binary | std::fstream::in | std::fstream::out);
+            }
+        }
+        m_diskFiles.push_back(std::move(currentFile));
     }
 }
 

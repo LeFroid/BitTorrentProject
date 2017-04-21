@@ -36,6 +36,20 @@ class TorrentFile;
 class TorrentState;
 namespace bencoding { class BenString; }
 
+/// Stores information about a file on the disk such as its length and offset (in bytes);
+/// also contains a handle to the file
+struct FileInfo
+{
+    /// Length of the file in bytes
+    uint64_t Length;
+
+    /// Offset of the file in bytes (position in piece/fragment stream)
+    uint64_t Offset;
+
+    /// File handle
+    std::fstream Handle;
+};
+
 /**
  * @class PieceMgr
  * @brief Responsible for storing information on the state of each piece in
@@ -115,6 +129,9 @@ private:
     /// Initializes the file handle which is used in single-file torrents
     void initializeSingleFileHandle();
 
+    /// Initializes the file info structures used in multi-file torrents
+    void initializeMultiFileHandles();
+
 private:
     /// Number of bytes per typical piece
     uint32_t m_pieceLength;
@@ -164,4 +181,8 @@ private:
 
     /// Handle used when performing I/O in single file download mode
     std::fstream m_singleFileHandle;
+
+    /// Stores pointers to the files being written to and read from 
+    std::vector< std::unique_ptr<FileInfo> > m_diskFiles;
 };
+
