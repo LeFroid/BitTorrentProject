@@ -27,6 +27,10 @@ find_package(SDL2_image REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 
 # OpenSSL or LibreSSL
+if(APPLE AND NOT OPENSSL_ROOT_DIR)
+    set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
+endif()
+
 find_package(OpenSSL REQUIRED)
 
 # Boost
