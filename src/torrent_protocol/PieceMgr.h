@@ -112,6 +112,9 @@ private:
     /// Writes the verified piece onto the disk, given a pointer to the data and its length in bytes
     void writePieceToDisk(uint8_t *data, size_t pieceLength);
 
+    /// Initializes the file handle which is used in single-file torrents
+    void initializeSingleFileHandle();
+
 private:
     /// Number of bytes per typical piece
     uint32_t m_pieceLength;

@@ -77,6 +77,12 @@ PieceMgr::PieceMgr(std::shared_ptr<TorrentFile> torrentFile) :
         m_fragmentsInFinalPiece = 1;
     else
         m_fragmentsInFinalPiece = (uint32_t)ceil(double(m_finalPieceLen) / DefaultFragmentLength);
+
+    /// Initialize file handle(s) for either single- or multi-file mode
+    if (m_torrentFile->isSingleFileMode())
+        initializeSingleFileHandle();
+    //else
+    //    initializeMultiFile();
 }
 
 PieceMgr::~PieceMgr()
@@ -134,19 +140,7 @@ bool PieceMgr::verifyFile()
         return false;
     }
 
-    // Single-File mode
-    auto it = infoDict->find("name");
-    if (it == infoDict->end())
-    {
-        LOG_ERROR("torrent_protocol.PieceMgr", "Could not fetch name to verify file contents!");
-        return false;
-    }
-
-    // Get path to file: Should be {Download Directory} / {File Name}
-    std::string pathStr = eTorrentMgr.getDownloadDirectory() + bencast<BenString*>(it->second)->getValue();
-    // Open file if have not done so yet
-    if (!m_singleFileHandle.is_open())
-        m_singleFileHandle.open(pathStr, std::fstream::in | std::fstream::binary);
+    // Only verifying single-file mode downloads for now
 
     // Attempt to fetch the torrent file's digest for the current piece
     const std::string &digestStr = m_digestString->getValue();
@@ -165,10 +159,11 @@ bool PieceMgr::verifyFile()
         size_t pieceLen = (pieceNum == m_pieceInfo.size() - 1) ? m_finalPieceLen : m_pieceLength;
         memset(pieceBuf, 0, m_pieceLength);
         m_singleFileHandle.seekg(pieceNum * pieceLen);
-        m_singleFileHandle.read((char*)pieceBuf, pieceLen);
+        m_singleFileHandle.read((char*)&pieceBuf[0], pieceLen);
 
         hash.update(pieceBuf, pieceLen);
         hash.finalize();
+
         // If hashes match, store the piece onto the disk, set m_pieceInfo[m_currentPiece] to 1
         if (memcmp(hash.getDigest(), digestStrTmp.c_str(), SHA_DIGEST_LENGTH) != 0)
         {
@@ -240,19 +235,6 @@ std::shared_ptr<TorrentFragment> PieceMgr::getFragmentToUpload(uint32_t pieceIdx
         it = infoDict->find("name");
         if (it != infoDict->end())
         {
-            // Get path to file: Should be {Download Directory} / {File Name}
-            std::string pathStr = eTorrentMgr.getDownloadDirectory() + bencast<BenString*>(it->second)->getValue();
-            boost::filesystem::path filePath(pathStr);
-
-            // Open file
-            // Open file if have not done so yet
-            if (!m_singleFileHandle.is_open())
-                m_singleFileHandle.open(pathStr, std::fstream::in | std::fstream::out | std::fstream::binary);
-            /*
-            std::ifstream fIn(pathStr, std::ofstream::in | std::ofstream::binary);
-            if (!fIn.is_open())
-                return fragPtr;*/
-
             // Get file length to ensure valid request
             m_singleFileHandle.seekg(0, m_singleFileHandle.end);
             uint64_t fileLen = m_singleFileHandle.tellg();
@@ -264,8 +246,7 @@ std::shared_ptr<TorrentFragment> PieceMgr::getFragmentToUpload(uint32_t pieceIdx
             // Seek to position, read data into fragment structure, done
             fragPtr = std::make_shared<TorrentFragment>(pieceIdx, offset, length);
             m_singleFileHandle.seekg(m_pieceLength * pieceIdx + offset);
-            m_singleFileHandle.read((char*)fragPtr->Data, length);
-            //fIn.close();
+            m_singleFileHandle.read((char*)&(fragPtr->Data[0]), length);
 
             // Increment bytes uploaded counter
             m_bytesUploaded += length;
@@ -393,7 +374,7 @@ void PieceMgr::onAllFragmentsDownloaded()
 
 void PieceMgr::writePieceToDisk(uint8_t *data, size_t pieceLength)
 {
-    // Get info dictionary to determine file name, if single or multi file mode, etc.
+    // Get info dictionary to determine file name
     BenDictionary *infoDict = m_torrentFile->getInfoDictionary();
     if (!infoDict)
     {
@@ -464,53 +445,63 @@ void PieceMgr::writePieceToDisk(uint8_t *data, size_t pieceLength)
     else
     {
         // Single-File mode
-        it = infoDict->find("name");
-        if (it != infoDict->end())
-        {
-            // Get path to file: Should be {Download Directory} / {File Name}
-            std::string pathStr = eTorrentMgr.getDownloadDirectory() + bencast<BenString*>(it->second)->getValue();
-            boost::filesystem::path filePath(pathStr);
+        // Seek to appropriate position in file
+        m_singleFileHandle.seekp(m_currentPiece * m_pieceLength);
 
-            // Open file if have not done so yet
-            if (!m_singleFileHandle.is_open())
-            {
-                m_singleFileHandle.open(pathStr, std::fstream::binary | std::fstream::in | std::fstream::out);
-                // Create file if non-existant
-                if (!m_singleFileHandle)
-                {
-                    m_singleFileHandle.open(pathStr, std::fstream::binary | std::fstream::trunc | std::fstream::out);
-                    m_singleFileHandle.close();
-                    // re-open with original flags
-                    m_singleFileHandle.open(pathStr, std::fstream::binary | std::fstream::in | std::fstream::out);
-                }
-            }
-
-            // Resize file if necessary
-            boost::system::error_code ec;
-            if (boost::filesystem::file_size(filePath, ec) < m_fileSize)
-            {
-                m_singleFileHandle.close();
-
-                if (ec)
-                    LOG_ERROR("torrent_protocol.PieceMgr", "Error reported from calling boost::filesystem::file_size on ", pathStr, " , Error message: ", ec.message());
-
-                boost::filesystem::resize_file(filePath, m_fileSize, ec);
-
-                if (ec)
-                    LOG_ERROR("torrent_protocol.PieceMgr", "Error reported from calling boost::filesystem::resize_file on ", pathStr, " , Error message: ", ec.message());
-
-                m_singleFileHandle.open(pathStr, std::fstream::binary | std::fstream::in | std::fstream::out);
-            }
-
-            // Seek to appropriate position in file
-            m_singleFileHandle.seekp(m_currentPiece * m_pieceLength);
-
-            // Write data
-            m_singleFileHandle.write((char*)&data[0], pieceLength);
-            m_singleFileHandle.flush();
-        }
+        // Write data
+        m_singleFileHandle.write((char*)&data[0], pieceLength);
+        m_singleFileHandle.flush();
     }
 
     // If able to write to disk, mark it as downloaded
     m_pieceInfo[m_currentPiece] = true;
 }
+
+void PieceMgr::initializeSingleFileHandle()
+{
+    // Get info dictionary to determine file name
+    BenDictionary *infoDict = m_torrentFile->getInfoDictionary();
+    if (!infoDict)
+    {
+        LOG_ERROR("torrent_protocol.PieceMgr", "Unable to retrieve pointer to Info Dictionary, will not be reading or writing data to disk.");
+        return;
+    }
+
+    // Single-File mode
+    auto it = infoDict->find("name");
+    if (it == infoDict->end())
+    {
+        LOG_ERROR("torrent_protocol.PieceMgr", "Unable to find \"name\" key in Info Dictionary. Will not be able to write to disk.");
+        return;
+    }
+
+    // Get path to file: Should be {Download Directory} / {File Name}
+    std::string pathStr = eTorrentMgr.getDownloadDirectory() + bencast<BenString*>(it->second)->getValue();
+    boost::filesystem::path filePath(pathStr);
+
+    // Open file
+    m_singleFileHandle.open(pathStr, std::fstream::binary | std::fstream::in | std::fstream::out);
+
+    // If could not open file, create file and resize it ahead of time
+    if (!m_singleFileHandle)
+    {
+        m_singleFileHandle.open(pathStr, std::fstream::binary | std::fstream::trunc | std::fstream::out);
+        m_singleFileHandle.close();
+
+        boost::system::error_code ec;
+        if (boost::filesystem::file_size(filePath, ec) < m_fileSize)
+        {
+            if (ec)
+                LOG_ERROR("torrent_protocol.PieceMgr", "Error reported from calling boost::filesystem::file_size on ", pathStr, " , Error message: ", ec.message());
+
+            boost::filesystem::resize_file(filePath, m_fileSize, ec);
+
+            if (ec)
+                LOG_ERROR("torrent_protocol.PieceMgr", "Error reported from calling boost::filesystem::resize_file on ", pathStr, " , Error message: ", ec.message());
+
+            // Re-open file with original flags
+            m_singleFileHandle.open(pathStr, std::fstream::binary | std::fstream::in | std::fstream::out);
+        }
+    }
+}
+
