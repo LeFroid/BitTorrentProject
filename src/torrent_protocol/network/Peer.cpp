@@ -249,10 +249,12 @@ namespace network
         memcpy(m_peerID, m_bufferRead.getReadPointer(), 20);
         m_bufferRead.advanceReadPosition(20);
 
-        // Set received handshake to true, send our handshake if it has not yet been sent
+        // Set received handshake to true, send our handshake if it has not yet been sent, otherwise send bitfield
         m_recvdHandshake = true;
         if (!m_sentHandshake)
             sendHandshake();
+        else
+            sendBitfield();
 
         // Continue to read data from peer
         read();
@@ -361,10 +363,13 @@ namespace network
         mb.write((const char*)m_torrentState->getTorrentFile()->getInfoHash(), 20);
         mb.write(eTorrentMgr.getPeerID(), 20);
 
-        // Send handshake, followed by bitfield
+        // Send handshake
         m_sentHandshake = true;
         send(std::move(mb));
-        //sendBitfield();
+
+        // Check if should send bitfield
+        if (m_recvdHandshake)
+            sendBitfield();
     }
 
     void Peer::sendBitfield()
@@ -383,15 +388,14 @@ namespace network
                 mb << uint8_t(0);
                 break;
             }
-            uint8_t currentByte = 0;
-            currentByte |= (bitset[bitsetPos]     << 7);
-            currentByte |= (bitset[bitsetPos + 1] << 6);
-            currentByte |= (bitset[bitsetPos + 2] << 5);
-            currentByte |= (bitset[bitsetPos + 3] << 4);
-            currentByte |= (bitset[bitsetPos + 4] << 3);
-            currentByte |= (bitset[bitsetPos + 5] << 2);
-            currentByte |= (bitset[bitsetPos + 6] << 1);
-            currentByte |= (bitset[bitsetPos + 7]);
+            uint8_t currentByte = ((bitset[bitsetPos] << 7) & 0x80)
+                    | ((bitset[bitsetPos + 1] << 6) & 0x40)
+                    | ((bitset[bitsetPos + 2] << 5) & 0x20)
+                    | ((bitset[bitsetPos + 3] << 4) & 0x10)
+                    | ((bitset[bitsetPos + 4] << 3) & 0x08)
+                    | ((bitset[bitsetPos + 5] << 2) & 0x04)
+                    | ((bitset[bitsetPos + 6] << 1) & 0x02)
+                    | (bitset[bitsetPos + 7] & 0x01);
             mb << currentByte;
 
             bitsetPos += 8;

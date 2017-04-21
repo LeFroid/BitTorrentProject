@@ -23,17 +23,40 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "MainWindow.h"
+#pragma once
 
-using namespace gui;
+#include "GUIObject.h"
 
-MainWindow::MainWindow(std::string title, int width, int height) :
-    Window(title, width, height, false)
+namespace gui
 {
-}
+    class Box;
 
-void MainWindow::draw()
-{
-    // draw child objects
-    Window::draw();
+    class ProgressBar : public GUIObject
+    {
+    public:
+        /// ProgressBar constructor - input is parent (TorrentCell), position, size, background color and
+        /// progression (completed) color
+        ProgressBar(GUIObject *parent, Position position, Size size, Color backgroundColor, Color progressColor);
+
+        /**
+         * @brief Updates the ratio of complete-ness of the progress bar
+         * @param partComplete A floating-point integer in the range [0.0, 1.0] representing the percent completion
+         */
+        void setProgress(float partComplete);
+
+    public:
+        /// Draws the progress bar onto its parent
+        void draw() override;
+
+    private:
+        /// Initializes the child objects of the screen
+        void initialize(const Color &bgColor, const Color &progressColor);
+
+    private:
+        /// Colored box that is used to show progression of a download
+        Box *m_boxProgress;
+
+        /// Colored box that is used to show the amount of progress that is yet to be made
+        Box *m_boxIncomplete;
+    };
 }

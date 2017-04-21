@@ -31,8 +31,19 @@ TorrentState::TorrentState(const std::string &torrentFilePath) :
     m_numPeers(0),
     m_numPeersCanUnchoke(5),
     m_downloadComplete(false),
-    m_pieceMgr(m_file)
+    m_pieceMgr(m_file),
+    m_torrentFileName()
 {
+    // Parse torrent file path string for "_.torrent" and set torrent file name to that substring
+    auto pathPos = torrentFilePath.find_last_of('/');
+    if (pathPos == std::string::npos)
+        pathPos = torrentFilePath.find_last_of('\\');
+    m_torrentFileName = (pathPos == std::string::npos) ? torrentFilePath : torrentFilePath.substr(pathPos + 1);
+}
+
+const std::string &TorrentState::getTorrentFileName()
+{
+    return m_torrentFileName;
 }
 
 std::shared_ptr<TorrentFile> &TorrentState::getTorrentFile()

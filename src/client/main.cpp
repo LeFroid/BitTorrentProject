@@ -23,7 +23,7 @@
 #include "Keybinder.h"
 #include "ObjectManager.h"
 
-#include "MainWindow.h"
+#include "Window.h"
 
 using namespace bencoding;
 using namespace gui;
@@ -55,7 +55,7 @@ int main(int argc, char **argv)
     sLog.setLogDir("./");
 
     // set log level of network (log file will be enormous if set to debug)
-    //sLog.get("torrent_protocol.network")->SetLogLevel(LOG_ERROR);
+    sLog.get("torrent_protocol.network")->SetLogLevel(LOG_ERROR);
 
     if (!Engine::initialize())
     {
@@ -67,6 +67,7 @@ int main(int argc, char **argv)
     loadResources();
 
     // bencoding test
+    /*
     Decoder decoder;
     std::string bencodedStr = "d4:spami42ee";
     LOG_INFO("client.test", "Decoding bencoded string \"", bencodedStr, "\" into Dictionary");
@@ -92,6 +93,7 @@ int main(int argc, char **argv)
     LOG_INFO("client.test", "Bencoding dictionary containing key-value pairs (\"str_key\", \"Hello, World!\"), ",
              "(\"list_key\", [ \"Hello, World!\", 42 ])");
     LOG_INFO("client.test", "Encoded dictionary represented as: ", encoder.getData());
+    */
 
     // Begin test on torrent file & tracker
     std::shared_ptr<TorrentState> testFile;
@@ -112,7 +114,7 @@ int main(int argc, char **argv)
     // End test on torrent file & tracker
 
     // Spawn the main window
-    MainWindow *win = ObjectManager::getInstance()->createObject<MainWindow>("BitTorrent Client", 1280, 800);
+    Window *win = ObjectManager::getInstance()->createObject<Window>("BitTorrent Client", 1280, 800, false);
     win->draw();
     win->setBackgroundColor(Color(255, 255, 255, 255));
 

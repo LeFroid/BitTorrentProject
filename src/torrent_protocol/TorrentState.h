@@ -51,6 +51,9 @@ public:
     /// Returns a reference to the torrent file pointer
     std::shared_ptr<TorrentFile> &getTorrentFile();
 
+    /// Returns the name of the ".torrent" file from which the torrent data was found
+    const std::string &getTorrentFileName();
+
     /// Returns the number of connected peers that are associated with the torrent
     const uint32_t &getNumPeers();
 
@@ -120,5 +123,6 @@ private:
     /// Piece selection and download manager
     PieceMgr m_pieceMgr;
 
-    //std::ofstream m_diskFile; -- figure out multi file mode downloads
+    /// Name of the ".torrent" file itself (used in graphical interface)
+    std::string m_torrentFileName;
 };

@@ -137,13 +137,14 @@ namespace network
         if (!torrentFile.get())
             return;
 
+        auto bytesDownloaded = m_torrentState->getNumPiecesHave() * torrentFile->getPieceLength();
         http::URL announceURL = torrentFile->getAnnounceURL();
         announceURL.setParameter("info_hash", torrentFile->getInfoHash(), 20);
         announceURL.setParameter("peer_id", m_peerID, 20);
         announceURL.setParameter("port", 6881);
         announceURL.setParameter("uploaded", m_torrentState->getNumBytesUploaded());
-        announceURL.setParameter("downloaded", m_torrentState->getNumPiecesHave() * torrentFile->getPieceLength());
-        announceURL.setParameter("left", torrentFile->getFileSize());
+        announceURL.setParameter("downloaded", bytesDownloaded);
+        announceURL.setParameter("left", torrentFile->getFileSize() - bytesDownloaded);
         announceURL.setParameter("compact", 1);
         announceURL.setParameter("event", "started");
         announceURL.setParameter("key", "magic");
