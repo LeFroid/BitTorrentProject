@@ -149,6 +149,12 @@ namespace network
         m_readPos += numBytes;
     }
 
+    void MutableBuffer::reverseReadPosition(size_type numBytes)
+    {
+        if (m_readPos >= numBytes)
+            m_readPos -= numBytes;
+    }
+
     void MutableBuffer::advanceWritePosition(size_type numBytes)
     {
         m_writePos += numBytes;

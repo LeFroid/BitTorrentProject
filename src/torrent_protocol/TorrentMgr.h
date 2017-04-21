@@ -82,6 +82,11 @@ public:
     void setDownloadDirectory(const std::string &dir);
 
 private:
+    /// Searches for the torrent with the given info hash, attempting to connect to its tracker service and
+    /// find peers. Runs every 5 minutes by default
+    void connectToTracker(boost::asio::deadline_timer *timer, uint8_t *infoHash);
+
+private:
     /// I/O service used for networking
     boost::asio::io_service m_ioService;
 
@@ -93,6 +98,9 @@ private:
 
     /// Hash map of info_hashes to shared_ptr's of TorrentStates
     std::unordered_map< uint8_t*, std::shared_ptr<TorrentState>, DigestHasher, DigestCompare > m_torrentMap;
+
+    /// Timers to re-connect to tracker services
+    std::vector< std::unique_ptr<boost::asio::deadline_timer> >m_trackerTimers;
 
     /// Lock used when accessing torrent map
     std::mutex m_torrentLock;

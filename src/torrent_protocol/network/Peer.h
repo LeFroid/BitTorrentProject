@@ -25,9 +25,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <boost/dynamic_bitset.hpp>
 #include <ctime>
 #include "Socket.h"
 
+class TorrentFragment;
 class TorrentState;
 
 namespace network
@@ -46,10 +48,14 @@ namespace network
         /// Constructs a peer by moving the given tcp socket
         Peer(boost::asio::ip::tcp::socket &&socket);
 
+        /// Peer destructor
+        ~Peer();
+
         /// Sets the shared pointer to the torrent state for the p2p connection
         void setTorrentState(std::shared_ptr<TorrentState> state);
 
-        //void requestPiece(uint64_t pieceNum);
+        /// Checks if client is eligible to request the piece being downloaded, and if so, sends a request to the peer
+        void tryToRequestPiece();
 
     protected:
         /// Called after the local client has successfully initiated a connection with a remote peer
@@ -58,11 +64,52 @@ namespace network
         /// Called after a successful read operation
         virtual void onRead() override;
 
+    /// Functions to handle incoming data
     private:
         /// Handles the handshake message sent by the peer
         void readHandshake();
 
+        /// Handles the unchoke message sent by the peer
+        void readUnchoked();
+
+        /// Handles the bitfield message and contents sent by the peer
+        void readBitfield(uint32_t length);
+
+        /// Handles the piece message and contents sent by the peer
+        void readPiece(uint32_t blockSize);
+
+        /// Handles the request message when received from the peer
+        void readRequest();
+
+    /// Functions to handle sending of data
     private:
+        /// Sends the client's handshake to the peer
+        void sendHandshake();
+
+        /// Sends the client's bitfield to the peer
+        void sendBitfield();
+
+        /// Sends the interested message to the peer
+        void sendInterested();
+
+        /// Sends the choke message to the peer
+        void sendChoke();
+
+        /// Sends the unchoke message to the peer
+        void sendUnchoke();
+
+        /// Sends a fragment of the piece at the given index, with an offset of the piece and
+        /// specified length to the peer 
+        void sendPiece(uint32_t pieceIdx, uint32_t offset, uint32_t length);
+
+        /// Sends a request to the peer for a fragment of the given piece with the specified
+        /// fragment offset and length
+        void sendRequest(uint32_t pieceIdx, uint32_t offset, uint32_t length);
+
+    private:
+        /// The peer's identifier
+        char m_peerID[20];
+
         /// The timestamp of when the last message was received
         time_t m_timeLastMessage;
 
@@ -78,10 +125,22 @@ namespace network
         /// True if the client is interested in the peer, false if else
         bool m_amInterested;
 
-        /// Used to determine if handshake has been performed
-        std::atomic_bool m_doneHandshake;
+        /// Used to determine if handshake has been received from the remote peer
+        bool m_recvdHandshake;
+
+        /// Used to determine if handshake has been sent by the client
+        bool m_sentHandshake;
+
+        /// Bitset representing the pieces of the torrent file this peer has
+        boost::dynamic_bitset<> m_piecesHave;
 
         /// Torrent state pointer
         std::shared_ptr<TorrentState> m_torrentState;
+
+        /// Fragment (if any) being downloaded to the client
+        std::shared_ptr<TorrentFragment> m_fragmentDownload;
+
+        /// Total number of bytes downloaded from the current fragment
+        uint32_t m_fragBytesDownloaded;
     };
 }

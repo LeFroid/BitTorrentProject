@@ -50,6 +50,9 @@ public:
     /// Returns the announce URL
     http::URL getAnnounceURL();
 
+    /// Returns a shared pointer to the string containing the digests of each piece in the torrent file
+    std::shared_ptr<bencoding::BenString> getDigestString();
+
     /// Returns a pointer to the info dictionary associated with the torrent file
     bencoding::BenDictionary *getInfoDictionary();
 
@@ -61,6 +64,12 @@ public:
 
     /// Returns the total number of pieces that make up the file
     const uint64_t &getNumPieces() const;
+
+    /// Returns the number of bytes in each piece of the file (final piece be of a different length)
+    uint64_t getPieceLength();
+
+    /// Returns true if torrent represents a single file, false if else
+    bool isSingleFileMode() const;
 
 private:
     /// Parses the torrent file with the given path, storing the decoded data into the meta info dictionary
@@ -78,6 +87,9 @@ private:
 
     /// Stores the digest of the value of the info key from the torrent file
     SHA1Hash m_infoHash;
+
+    /// True if single file mode, false if else
+    bool m_singleFileMode;
 
     /// Metainfo contained in the torrent file
     std::shared_ptr<bencoding::BenDictionary> m_metaInfo;

@@ -28,13 +28,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <boost/asio.hpp>
 #include <boost/dynamic_bitset.hpp>
 #include <cstdint>
+#include <atomic>
 #include <memory>
-#include <unordered_map>
+
+#include "PieceMgr.h"
 
 class TorrentFile;
+namespace network { class Peer; }
 
+/**
+ * @class TorrentState
+ * @brief Manages the state of the torrent - number of peers connected,
+ *        pieces being downloaded, etc.
+ */
 class TorrentState
 {
+    friend class network::Peer;
 public:
     /// TorrentState constructor - requires torrent file path
     explicit TorrentState(const std::string &torrentFilePath);
@@ -42,21 +51,74 @@ public:
     /// Returns a reference to the torrent file pointer
     std::shared_ptr<TorrentFile> &getTorrentFile();
 
-    /// Returns the index of the piece currently being downloaded (or about to be downloaded)
-    uint64_t getCurrentPieceNum() { return 0; }
-    // use piece selection algorithm to order pieces, push onto a stack, pop and return value here once the
-    // last selected piece has been downloaded in its entirety (invisible to the caller)
+    /// Returns the number of connected peers that are associated with the torrent
+    const uint32_t &getNumPeers();
+
+    /// Returns the number of pieces that have been downloaded and verified
+    uint64_t getNumPiecesHave() { return m_pieceMgr.getNumPiecesHave(); }
 
     /// Returns true if the client has the given piece of the torrent data, false if else
-    bool havePiece(uint64_t pieceIdx) const;
+    bool havePiece(uint32_t pieceIdx) const { return m_pieceMgr.havePiece(pieceIdx); }
+
+    /// Returns the index of the piece currently being downloaded (or about to be downloaded)
+    const uint32_t &getCurrentPieceNum() { return m_pieceMgr.getCurrentPieceNum(); }
+
+    /// Returns the total number of bytes uploaded to peers
+    const uint64_t &getNumBytesUploaded() const { return m_pieceMgr.getNumBytesUploaded(); }
+
+    /// Returns true if the integrity of the file is confirmed, false if else.
+    bool verifyFile() { return m_pieceMgr.verifyFile(); }
+
+protected:
+    /// Called when a new peer has been associated with this torrent object
+    void incrementPeerCount();
+
+    /// Called when a peer has been disassociated from this torrent object
+    void decrementPeerCount();
+
+    /// Returns true if it will be allowed to unchoke another peer, false if else
+    bool canUnchokePeer();
+
+    /// Called when a peer has been choked (increments count of peers to allow to be unchoked)
+    void onPeerChoked();
+
+    /// Sets the flag for the piece at the given index as being available for downloading from a peer
+    void markPieceAvailable(uint32_t pieceIdx) { m_pieceMgr.markPieceAvailable(pieceIdx); }
+
+    /// Reads the bitset from a peer of pieces they do or dont have, setting the set of available
+    /// pieces to the union of the currently available pieces and the peer's pieces
+    void readPeerBitset(const boost::dynamic_bitset<> &set) { m_pieceMgr.readPeerBitset(set); }
+
+    /// Returns a bitset of the pieces that the client has
+    const boost::dynamic_bitset<> &getBitsetHave() const { return m_pieceMgr.getBitsetHave(); }
+
+    /// Returns a pointer to a torrent fragment structure that needs to be downloaded.
+    /// If the fragments associated with the current piece have already been assigned,
+    /// returns a null pointer.
+    std::shared_ptr<TorrentFragment> getFragmentToDownload() { return m_pieceMgr.getFragmentToDownload(); }
+
+    /// If the client has the given fragment, it will return a shared pointer to a structure containing its data.
+    /// Otherwise, returns a null pointer
+    std::shared_ptr<TorrentFragment> getFragmentToUpload(uint32_t pieceIdx, uint32_t offset, uint32_t length) { return m_pieceMgr.getFragmentToUpload(pieceIdx, offset, length); }
+
+    /// Called by a peer once a fragment has been downloaded in its entirety
+    void onFragmentDownloaded(uint32_t pieceIdx) { m_pieceMgr.onFragmentDownloaded(pieceIdx); }
 
 private:
     /// Shared pointer to the torrent file
     std::shared_ptr<TorrentFile> m_file;
 
-    /// Bitset representing pieces of the torrent that have or haven't yet been
-    /// downloaded. 1 = Downloaded, 0 = Not Downloaded
-    boost::dynamic_bitset<> m_pieceInfo;
+    /// Current number of peers which the client is connected to for the torrent file
+    uint32_t m_numPeers;
+
+    /// Counter of peers that will be allowed to be unchoked
+    std::atomic<uint32_t> m_numPeersCanUnchoke;
+
+    /// True if download is complete, false if else
+    bool m_downloadComplete;
+
+    /// Piece selection and download manager
+    PieceMgr m_pieceMgr;
 
     //std::ofstream m_diskFile; -- figure out multi file mode downloads
 };

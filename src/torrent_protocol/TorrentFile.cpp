@@ -37,6 +37,7 @@ TorrentFile::TorrentFile(std::string path) :
     m_numPieces(0),
     m_size(0),
     m_infoHash(),
+    m_singleFileMode(false),
     m_metaInfo()
 {
     parseFile(path);
@@ -52,6 +53,21 @@ http::URL TorrentFile::getAnnounceURL()
     }
 
     return http::URL(bencast<BenString*>(it->second)->getValue());
+}
+
+std::shared_ptr<BenString> TorrentFile::getDigestString()
+{
+    std::shared_ptr<BenString> retVal(nullptr);
+
+    BenDictionary *infoDict = getInfoDictionary();
+    if (infoDict)
+    {
+        auto itr = infoDict->find("pieces");
+        if (itr != infoDict->end())
+            retVal = std::static_pointer_cast<BenString>(itr->second);
+    }
+
+    return retVal;
 }
 
 BenDictionary *TorrentFile::getInfoDictionary()
@@ -79,6 +95,24 @@ const uint64_t &TorrentFile::getFileSize() const
 const uint64_t &TorrentFile::getNumPieces() const
 {
     return m_numPieces;
+}
+
+uint64_t TorrentFile::getPieceLength()
+{
+    if (BenDictionary *infoDict = getInfoDictionary())
+    {
+        auto it = infoDict->find("piece length");
+        if (it != infoDict->end())
+            return bencast<BenInt*>(it->second)->getValue();
+    }
+    
+    LOG_ERROR("torrent_protocol.TorrentFile", "Unable to fetch piece length");
+    return 0;
+}
+
+bool TorrentFile::isSingleFileMode() const
+{
+    return m_singleFileMode;
 }
 
 void TorrentFile::parseFile(const std::string &path)
@@ -135,10 +169,12 @@ void TorrentFile::calculateFileSize()
     if (it != infoDict->end())
     {
         m_size = (uint64_t) bencast<BenInt*>(it->second)->getValue();
+        m_singleFileMode = true;
     }
     else
     {
         // For multi-file mode, must calculate the sum of each file's respective length
+        m_singleFileMode = false;
 
         // First get files list
         it = infoDict->find("files");

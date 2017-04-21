@@ -101,6 +101,9 @@ namespace network
         /// Advances the buffer's read position by the given number of bytes
         void advanceReadPosition(size_type numBytes);
 
+        /// Reverses the buffer's read position by the given number of bytes
+        void reverseReadPosition(size_type numBytes);
+
         /// Advances the buffer's write position by the given number of bytes
         void advanceWritePosition(size_type numBytes);
 

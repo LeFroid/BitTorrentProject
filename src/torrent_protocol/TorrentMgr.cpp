@@ -24,6 +24,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <cstring>
+#include <ctime>
+
 #include <algorithm>
 #include <functional>
 
@@ -39,11 +41,14 @@ TorrentMgr::TorrentMgr(const std::string &configFile) :
     m_signalSet(m_ioService, SIGINT, SIGTERM),
     m_ioThread(),
     m_torrentMap(),
+    m_trackerTimers(),
     m_connectionMgr(std::make_shared< network::ConnectionMgr<network::Peer> >(m_ioService)),
     m_trackerMgr(m_ioService),
     m_peerListener(m_ioService),
     m_config()
 {
+    srand(time(nullptr));
+
     // Set peer ID
     memcpy(&m_peerID[0], &PeerNameVersion[0], 8);
     for (int i = 8; i < 20; ++i)
@@ -98,19 +103,18 @@ std::shared_ptr<TorrentState> TorrentMgr::addTorrent(const std::string &torrentP
             m_torrentMap[torrentRef->getInfoHash()] = retVal;
         }
 
-        // Instantiate tracker client
-        auto trackerClient = std::make_shared<network::TrackerClient>(m_ioService, network::Socket::Mode::TCP);
-        trackerClient->setPeerID(m_peerID);
-        trackerClient->setTorrentState(retVal);
-        trackerClient->setConnectionMgr(m_connectionMgr);
 
-        // Connect client to tracker service
-        auto trackerEndpoint = trackerClient->findTrackerEndpointTCP();
-        trackerClient->connect(trackerEndpoint);
+        // Add new deadline timer for connecting to tracker
+        std::unique_ptr<boost::asio::deadline_timer> trackerTimer(new boost::asio::deadline_timer(m_ioService));
+        m_trackerTimers.push_back(std::move(trackerTimer));
 
-        // Add tracker client to its connection manager
-        m_trackerMgr.addConnection(trackerClient);
+        // Connect to tracker immediately, then every few minutes
+        connectToTracker(m_trackerTimers.at(m_trackerTimers.size() - 1).get(), torrentRef->getInfoHash());
 
+        /*if (retVal->verifyFile())
+            LOG_INFO("torrent_protocol.mgr", "Each piece of file verified!");
+        else
+            LOG_INFO("torrent_protocol.mgr", "Could not verify file!");*/
         return retVal;
     }
 
@@ -148,4 +152,32 @@ std::string TorrentMgr::getDownloadDirectory()
 void TorrentMgr::setDownloadDirectory(const std::string &dir)
 {
     m_config.setValue<std::string>("disk.download_dir", dir);
+}
+
+void TorrentMgr::connectToTracker(boost::asio::deadline_timer *timer, uint8_t *infoHash)
+{
+    if (timer == nullptr)
+        return;
+
+    auto torrent = m_torrentMap.find(infoHash);
+    if (torrent == m_torrentMap.end())
+        return;
+
+    std::shared_ptr<TorrentState> torrentPtr = torrent->second;
+
+    // Instantiate tracker client
+    auto trackerClient = std::make_shared<network::TrackerClient>(m_ioService, network::Socket::Mode::TCP);
+    trackerClient->setPeerID(m_peerID);
+    trackerClient->setTorrentState(torrentPtr);
+    trackerClient->setConnectionMgr(m_connectionMgr);
+
+    // Connect client to tracker service
+    auto trackerEndpoint = trackerClient->findTrackerEndpointTCP();
+    trackerClient->connect(trackerEndpoint);
+
+    // Add tracker client to its connection manager
+    m_trackerMgr.addConnection(trackerClient);
+
+    timer->expires_from_now(boost::posix_time::minutes(5));
+    timer->async_wait(std::bind(&TorrentMgr::connectToTracker, this, timer, infoHash));
 }
