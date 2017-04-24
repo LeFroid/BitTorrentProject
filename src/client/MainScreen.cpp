@@ -131,10 +131,20 @@ namespace gui
         const std::string &filePath = m_inputBoxTorrentFile->getText();
         if (filePath.empty())
             return;
-
-        std::shared_ptr<TorrentState> torrent = eTorrentMgr.addTorrent(filePath);
-        if (torrent.get())
-            m_torrentTable->addTorrent(torrent);
+        // Make sure the path is valid
+        boost::filesystem::path pathCheck(filePath);
+        boost::system::error_code ec;
+        if (boost::filesystem::exists(pathCheck, ec))
+        {
+            std::shared_ptr<TorrentState> torrent = eTorrentMgr.addTorrent(filePath);
+            if (torrent.get())
+                m_torrentTable->addTorrent(torrent);
+        }
+        else
+        {
+            m_inputBoxTorrentFile->setText("Error: File not found");
+            draw();
+        }
     }
 
     void MainScreen::onChangeDownloadDir()
