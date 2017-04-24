@@ -98,6 +98,15 @@ namespace network
         }
     }
 
+    void Peer::sendPieceHave()
+    {
+        const auto &pieces = m_torrentState->getBitsetHave();
+        if (pieces.any())
+        {
+            sendHave(pieces.find_first());
+        }
+    }
+
     void Peer::onConnect()
     {
         if (!m_torrentState.get())
@@ -375,7 +384,10 @@ namespace network
     void Peer::sendBitfield()
     {
         const boost::dynamic_bitset<> &bitset = m_torrentState->getBitsetHave();
-        const size_t bytesToSend = bitset.size() / 8;
+        if (!bitset.any())
+            return;
+
+        const size_t bytesToSend = (size_t)ceil((float)bitset.size() / 8.0f);
         size_t bitsetPos = 0;
 
         MutableBuffer mb(4 + 1 + bytesToSend);
@@ -388,14 +400,14 @@ namespace network
                 mb << uint8_t(0);
                 break;
             }
-            uint8_t currentByte = ((bitset[bitsetPos] << 7) & 0x80)
-                    | ((bitset[bitsetPos + 1] << 6) & 0x40)
-                    | ((bitset[bitsetPos + 2] << 5) & 0x20)
-                    | ((bitset[bitsetPos + 3] << 4) & 0x10)
-                    | ((bitset[bitsetPos + 4] << 3) & 0x08)
-                    | ((bitset[bitsetPos + 5] << 2) & 0x04)
-                    | ((bitset[bitsetPos + 6] << 1) & 0x02)
-                    | (bitset[bitsetPos + 7] & 0x01);
+            uint8_t currentByte = ((bitset.test(bitsetPos) ? uint8_t(0x80) : uint8_t(0x00))
+                    | (bitset.test(bitsetPos + 1) ? uint8_t(0x40) : uint8_t(0x00))
+                    | (bitset.test(bitsetPos + 2) ? uint8_t(0x20) : uint8_t(0x00))
+                    | (bitset.test(bitsetPos + 3) ? uint8_t(0x10) : uint8_t(0x00))
+                    | (bitset.test(bitsetPos + 4) ? uint8_t(0x08) : uint8_t(0x00))
+                    | (bitset.test(bitsetPos + 5) ? uint8_t(0x04) : uint8_t(0x00))
+                    | (bitset.test(bitsetPos + 6) ? uint8_t(0x02) : uint8_t(0x00))
+                    | (bitset.test(bitsetPos + 7) ? uint8_t(0x01) : uint8_t(0x00)));
             mb << currentByte;
 
             bitsetPos += 8;
@@ -452,6 +464,21 @@ namespace network
         mb << pieceIdx;         // Piece
         mb << offset;           // Fragment Offset
         mb << length;           // Fragment Length
+        send(std::move(mb));
+    }
+
+    void Peer::sendHave(uint32_t pieceIdx)
+    {
+        if (!m_sentHandshake || !m_recvdHandshake)
+            return;
+
+        if (m_isClosing || pieceIdx >= m_piecesHave.size())
+            return;
+
+        MutableBuffer mb(4 + 1 + 4);
+        mb << uint32_t(5); // Length
+        mb << uint8_t(4);  // Message ID
+        mb << pieceIdx;
         send(std::move(mb));
     }
 }

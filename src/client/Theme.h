@@ -25,45 +25,42 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "GUIObject.h"
+#include "Configuration.h"
+#include "GUIProperties.h"
+#include <string>
 
-class TorrentState;
-
-namespace gui
+/**
+ * @class Theme
+ * @brief Corresponds to the GUI colorscheme specified in bitclient_gui.json
+ */
+class Theme
 {
-    class VBoxLayout;
+public:
+    /// Constructs the theme object given the path to the theme configuration file
+    explicit Theme(const std::string &cfgFile);
 
-    /**
-     * @class TorrentTable
-     * @brief Stores \ref TorrentCells, each (potentially) displaying the progress of
-     *        a torrent file download/upload
-     */
-    class TorrentTable : public GUIObject
-    {
-    public:
-        /// Constructor - requires parent object, a positon and size
-        TorrentTable(GUIObject *parent, Position position, Size size);
+    /// Returns the background color of the main window
+    const gui::Color &getBackgroundColor() const;
 
-        /// Adds a new cell to the table, which will report the stats regarding the
-        /// given TorrentState pointer
-        void addTorrent(std::shared_ptr<TorrentState> torrent);
+    /// Returns the background color of a text box
+    const gui::Color &getTextBoxColor() const;
 
-    public:
-        /// Draws the torrent table and its cells onto the parent
-        void draw() override;
+    /// Returns the background color of a button
+    const gui::Color &getButtonColor() const;
 
-    private:
-        /// Updates any cells in the table
-        void updateCells();
+    /// Returns the mouse hover color of a button
+    const gui::Color &getButtonHoverColor() const;
 
-    private:
-        /// Vertical layout manager
-        VBoxLayout *m_vboxCells;
+private:
+    /// Background color
+    gui::Color m_bgColor;
 
-        /// Stores the object ids of each cell in the table
-        std::vector<GUIObjectID> m_cells;
+    /// Text box color
+    gui::Color m_textBoxColor;
 
-        /// Counts up to a certain interval before calling updateCells()
-        uint32_t m_counter;
-    };
-}
+    /// Button color
+    gui::Color m_buttonColor;
+
+    /// Button hover color
+    gui::Color m_buttonHoverColor;
+};

@@ -27,43 +27,46 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "GUIObject.h"
 
-class TorrentState;
+#include "Theme.h"
 
 namespace gui
 {
-    class VBoxLayout;
+    class Button;
+    class TextInputBox;
+    class TorrentTable;
 
     /**
-     * @class TorrentTable
-     * @brief Stores \ref TorrentCells, each (potentially) displaying the progress of
-     *        a torrent file download/upload
+     * @class MainScreen
+     * @brief Handles the layout of all objects on the main window, their refresh rate, etc.
      */
-    class TorrentTable : public GUIObject
+    class MainScreen : public GUIObject
     {
     public:
-        /// Constructor - requires parent object, a positon and size
-        TorrentTable(GUIObject *parent, Position position, Size size);
-
-        /// Adds a new cell to the table, which will report the stats regarding the
-        /// given TorrentState pointer
-        void addTorrent(std::shared_ptr<TorrentState> torrent);
+        /// Constructs the main screen with a pointer to the window, and the path to the gui theme file
+        MainScreen(GUIObject *parent, std::string themeFile);
 
     public:
-        /// Draws the torrent table and its cells onto the parent
+        /// Draws the screen onto the window
         void draw() override;
 
     private:
-        /// Updates any cells in the table
-        void updateCells();
+        /// Initializes the objects belonging to the screen
+        void initialize();
+
+        /// Attempts to begin the download process of a torrent file
+        void downloadTorrent();
 
     private:
-        /// Vertical layout manager
-        VBoxLayout *m_vboxCells;
+        /// Text input box, used to enter the path of a .torrent file to begin downloading
+        TextInputBox *m_inputBoxTorrentFile;
 
-        /// Stores the object ids of each cell in the table
-        std::vector<GUIObjectID> m_cells;
+        /// Button used to begin downloading the torrent file associated with the input in the text box
+        Button *m_buttonAddTorrent;
 
-        /// Counts up to a certain interval before calling updateCells()
-        uint32_t m_counter;
+        /// Table which stores the cells representing the progress and stats of each torrent file being downloaded
+        TorrentTable *m_torrentTable;
+
+        /// GUI theme object
+        Theme m_theme;
     };
 }

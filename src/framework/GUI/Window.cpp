@@ -121,6 +121,7 @@ namespace gui
             if (child->getSize() == winSize)
                 child->setSize(winSize);
             
+            redraw(child);
             child->hide();
             child->draw();
         }
@@ -143,6 +144,7 @@ namespace gui
                 continue;
             }
             
+            redraw(child);
             child->hide();
             child->draw();
         }

@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Box.h"
 
 class TorrentState;
+class TorrentTable;
 
 namespace gui
 {
@@ -42,6 +43,8 @@ namespace gui
      */
     class TorrentCell : public Box
     {
+        friend class TorrentTable;
+
     public:
         /// TorrentCell constructor - input is parent (table), position, size and background color
         TorrentCell(GUIObject *parent, Position position, Size size, Color color);
@@ -54,10 +57,15 @@ namespace gui
         /// Does nothing if not assigned to a torrent file
         void update();
 
-    private:
-        /// Initializes child objects which belong to the cell
+    public:
+        /// Draws the torrent cell onto its parent
+        virtual void draw() override;
+
+    protected:
+        /// Initializes child objects belonging to the cell
         void initialize();
 
+    private:
         /// Given a number of bytes, returns a string containing a user-friendly
         /// representation of the size. For example: 1048576 => "1 MB", or 1024 => "1 KB"
         std::string bytesToReadableFmt(const uint64_t &bytes);
@@ -83,5 +91,8 @@ namespace gui
 
         /// Label displaying the ratio of pieces that have been downloaded to the total number of pieces (ex: 100/3200 pieces)
         Label *m_labelRatioPiecesHave;
+
+        /// Label displaying the total size of the file, once downloaded
+        Label *m_labelFileSize;
     };
 }

@@ -55,7 +55,7 @@ public:
     const std::string &getTorrentFileName();
 
     /// Returns the number of connected peers that are associated with the torrent
-    const uint32_t &getNumPeers();
+    uint32_t getNumPeers();
 
     /// Returns the number of pieces that have been downloaded and verified
     uint64_t getNumPiecesHave() { return m_pieceMgr.getNumPiecesHave(); }
@@ -112,7 +112,7 @@ private:
     std::shared_ptr<TorrentFile> m_file;
 
     /// Current number of peers which the client is connected to for the torrent file
-    uint32_t m_numPeers;
+    std::atomic<uint32_t> m_numPeers;
 
     /// Counter of peers that will be allowed to be unchoked
     std::atomic<uint32_t> m_numPeersCanUnchoke;

@@ -37,7 +37,7 @@ TARGET_LINK_LIBRARIES(${client_EXEC}
 
 if (UNIX)
     install(TARGETS ${client_EXEC} DESTINATION bin COMPONENT binaries)
-    install(FILES bitclient.json DESTINATION etc COMPONENT config)
+    install(FILES bitclient.json bitclient_gui.json DESTINATION etc COMPONENT config)
     add_custom_target(copy-fonts ALL
         COMMAND cmake -E copy_directory ${CMAKE_SOURCE_DIR}/Fonts ${CMAKE_INSTALL_PREFIX}/shared/bitclient/Fonts
         DEPENDS ${client_EXEC})

@@ -51,9 +51,9 @@ std::shared_ptr<TorrentFile> &TorrentState::getTorrentFile()
     return m_file;
 }
 
-const uint32_t &TorrentState::getNumPeers()
+uint32_t TorrentState::getNumPeers()
 {
-    return m_numPeers;
+    return m_numPeers.load();
 }
 
 void TorrentState::incrementPeerCount()
@@ -63,7 +63,8 @@ void TorrentState::incrementPeerCount()
 
 void TorrentState::decrementPeerCount()
 {
-    --m_numPeers;
+    if (m_numPeers > 0)
+        --m_numPeers;
 }
 
 bool TorrentState::canUnchokePeer()

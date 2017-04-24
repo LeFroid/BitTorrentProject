@@ -23,47 +23,37 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once
+#include "Theme.h"
 
-#include "GUIObject.h"
-
-class TorrentState;
-
-namespace gui
+Theme::Theme(const std::string &cfgFile)
 {
-    class VBoxLayout;
+    Configuration cfg;
+    cfg.loadFile(cfgFile);
 
-    /**
-     * @class TorrentTable
-     * @brief Stores \ref TorrentCells, each (potentially) displaying the progress of
-     *        a torrent file download/upload
-     */
-    class TorrentTable : public GUIObject
-    {
-    public:
-        /// Constructor - requires parent object, a positon and size
-        TorrentTable(GUIObject *parent, Position position, Size size);
+    std::string themeName = std::string("themes.") + *cfg.getValue<std::string>("default_theme") + std::string(".");
 
-        /// Adds a new cell to the table, which will report the stats regarding the
-        /// given TorrentState pointer
-        void addTorrent(std::shared_ptr<TorrentState> torrent);
+    m_bgColor = gui::Color(*cfg.getValue<std::string>(themeName + "background"));
+    m_textBoxColor = gui::Color(*cfg.getValue<std::string>(themeName + "textbox"));
+    m_buttonColor = gui::Color(*cfg.getValue<std::string>(themeName + "button"));
+    m_buttonHoverColor = gui::Color(*cfg.getValue<std::string>(themeName + "button_hover"));
+}
 
-    public:
-        /// Draws the torrent table and its cells onto the parent
-        void draw() override;
+const gui::Color &Theme::getBackgroundColor() const
+{
+    return m_bgColor;
+}
 
-    private:
-        /// Updates any cells in the table
-        void updateCells();
+const gui::Color &Theme::getTextBoxColor() const
+{
+    return m_textBoxColor;
+}
 
-    private:
-        /// Vertical layout manager
-        VBoxLayout *m_vboxCells;
+const gui::Color &Theme::getButtonColor() const
+{
+    return m_buttonColor;
+}
 
-        /// Stores the object ids of each cell in the table
-        std::vector<GUIObjectID> m_cells;
-
-        /// Counts up to a certain interval before calling updateCells()
-        uint32_t m_counter;
-    };
+const gui::Color &Theme::getButtonHoverColor() const
+{
+    return m_buttonHoverColor;
 }

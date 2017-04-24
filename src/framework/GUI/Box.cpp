@@ -47,7 +47,7 @@ namespace gui
             LOG_WARNING("framework.gui", "In Box::draw() - Unable to fetch the rendering object on a box. SDL Error: ", SDL_GetError());
             return;
         }
-            
+
         if (!render->drawBox(getSize(), getPosition(), getColor()))
             LOG_ERROR("framework.gui", "In Box::draw() - Unable to have the renderer draw a box. SDL Error: ", SDL_GetError());
 

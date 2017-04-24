@@ -125,6 +125,7 @@ namespace network
             {
                 if (connection.get() && connection->isClosing())
                     return true;
+                connection->sendPieceHave();
                 return false;
             }), m_connections.end());
 

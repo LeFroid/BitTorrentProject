@@ -25,6 +25,8 @@
 
 #include "Window.h"
 
+#include "MainScreen.h"
+
 using namespace bencoding;
 using namespace gui;
 
@@ -93,7 +95,7 @@ int main(int argc, char **argv)
     LOG_INFO("client.test", "Bencoding dictionary containing key-value pairs (\"str_key\", \"Hello, World!\"), ",
              "(\"list_key\", [ \"Hello, World!\", 42 ])");
     LOG_INFO("client.test", "Encoded dictionary represented as: ", encoder.getData());
-    */
+
 
     // Begin test on torrent file & tracker
     std::shared_ptr<TorrentState> testFile;
@@ -112,11 +114,20 @@ int main(int argc, char **argv)
         LOG_INFO("client.test", "There are ", torrentPtr->getNumPieces(), " pieces in the file");
     }
     // End test on torrent file & tracker
+    */
 
-    // Spawn the main window
-    Window *win = ObjectManager::getInstance()->createObject<Window>("BitTorrent Client", 1280, 800, false);
+    // Start io_service
+    eTorrentMgr.run();
+
+    // Spawn the main window and screen
+    ObjectManager *objMgr = ObjectManager::getInstance();
+    Window *win = objMgr->createObject<Window>("BitTorrent Client", 1280, 800, false);
     win->draw();
     win->setBackgroundColor(Color(255, 255, 255, 255));
+
+    std::string themeFile = CLIENT_CONFIG_DIR + std::string("bitclient_gui.json");
+    MainScreen *screen = objMgr->createObject<MainScreen>(win, themeFile);
+    screen->draw();
 
     EventHandler *eventHandler = EventHandler::getInstance();
     eventHandler->setWindowPtr(win);

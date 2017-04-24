@@ -44,9 +44,10 @@ namespace gui
         m_labelNumPeers(nullptr),
         m_labelDataDownloaded(nullptr),
         m_labelDataUploaded(nullptr),
-        m_labelRatioPiecesHave(nullptr)
+        m_labelRatioPiecesHave(nullptr),
+        m_labelFileSize(nullptr)
     {
-        initialize();
+        //initialize();
     }
 
     void TorrentCell::assignTorrentState(std::shared_ptr<TorrentState> state)
@@ -54,6 +55,10 @@ namespace gui
         m_torrentState = state;
 
         setChildrenHidden(false);
+
+        // Only set file size label once
+        m_labelFileSize->setText("Total Size: " + bytesToReadableFmt(m_torrentState->getTorrentFile()->getFileSize()));
+
         update();
     }
 
@@ -80,6 +85,12 @@ namespace gui
         m_labelDataDownloaded->setText("Download: " + bytesToReadableFmt(bytesDownloaded));
     }
 
+    void TorrentCell::draw()
+    {
+        update();
+        Box::draw();
+    }
+
     void TorrentCell::initialize()
     {
         const Position &parentPos = getPosition();
@@ -88,7 +99,7 @@ namespace gui
         ObjectManager *objMgr = ObjectManager::getInstance();
 
         // Torrent file label
-        Position tmpPos(parentPos.x + 5, parentPos.y + 5);
+        Position tmpPos(parentPos.x + 15, parentPos.y + 5);
         Color textColor(0, 0, 0, 255);
         m_labelTorrentFile = objMgr->createObject<Label>(this, tmpPos, Size(parentSize.width - 10, parentSize.height / 4), textColor,
             std::string(), 24);
@@ -98,28 +109,33 @@ namespace gui
         tmpPos.y = parentPos.y + parentSize.height / 3;
         Color colorIncomplete(150, 150, 150, 255);
         Color colorProgress(35, 148, 255, 255);
-        m_progressBar = objMgr->createObject<ProgressBar>(this, tmpPos, Size(parentSize.width * 5 / 6, parentSize.height / 4), colorIncomplete, colorProgress);
+        m_progressBar = objMgr->createObject<ProgressBar>(this, tmpPos, Size((parentSize.width * 5 / 6) - 10, parentSize.height / 4), colorIncomplete, colorProgress);
 
         // Piece ratio label
         tmpPos.y += 5 + parentSize.height / 4;
         m_labelRatioPiecesHave = objMgr->createObject<Label>(this, tmpPos, Size(parentSize.width / 3, parentSize.height / 10), textColor,
             std::string(), 16);
 
+        // File size label
+        tmpPos.x = parentPos.x + parentSize.width * 3 / 4;
+        m_labelFileSize = objMgr->createObject<Label>(this, tmpPos, Size(parentSize.width / 4, parentSize.height / 10), textColor,
+            std::string(), 16);
+
         // Peers label
-        tmpPos.x = parentPos.x + 5;
-        tmpPos.y = parentPos.y + (parentSize.height * 3 / 4) - 5;
-        m_labelNumPeers = objMgr->createObject<Label>(this, tmpPos, Size(parentSize.width / 4, (parentSize.height / 4) - 5), textColor,
-            std::string(), 14);
+        tmpPos.x = parentPos.x + 15;
+        tmpPos.y = parentPos.y + (parentSize.height * 5 / 6) - 5;
+        m_labelNumPeers = objMgr->createObject<Label>(this, tmpPos, Size(parentSize.width / 4, (parentSize.height / 6) - 5), textColor,
+            std::string(), 20);
 
         // Upload label
         tmpPos.x = parentPos.x + parentSize.width * 9 / 16;
-        m_labelDataUploaded = objMgr->createObject<Label>(this, tmpPos, Size(parentSize.width / 5, (parentSize.height / 4) - 5), textColor,
-            std::string(), 14);
+        m_labelDataUploaded = objMgr->createObject<Label>(this, tmpPos, Size(parentSize.width / 5, (parentSize.height / 6) - 5), textColor,
+            std::string(), 20);
 
         // Download label
         tmpPos.x = parentPos.x + parentSize.width * 3 / 4;
-        m_labelDataDownloaded = objMgr->createObject<Label>(this, tmpPos, Size(parentSize.width / 5, (parentSize.height / 4) - 5), textColor,
-            std::string(), 14);
+        m_labelDataDownloaded = objMgr->createObject<Label>(this, tmpPos, Size(parentSize.width / 5, (parentSize.height / 6) - 5), textColor,
+            std::string(), 20);
 
         setChildrenHidden(true);
     }

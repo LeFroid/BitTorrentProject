@@ -1,0 +1,13 @@
+{
+    "themes":
+    {
+        "blue":
+        {
+            "background": "0x6F90A2",
+            "textbox": "0xD3DFE6",
+            "button": "0xB3B3B3",
+            "button_hover": "0xE1E1E1"
+        }
+    },
+    "default_theme": "blue"
+}

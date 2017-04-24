@@ -57,6 +57,9 @@ namespace network
         /// Checks if client is eligible to request the piece being downloaded, and if so, sends a request to the peer
         void tryToRequestPiece();
 
+        /// Sends info. to the peer regarding any random piece the client has
+        void sendPieceHave();
+
     protected:
         /// Called after the local client has successfully initiated a connection with a remote peer
         virtual void onConnect() override;
@@ -105,6 +108,9 @@ namespace network
         /// Sends a request to the peer for a fragment of the given piece with the specified
         /// fragment offset and length
         void sendRequest(uint32_t pieceIdx, uint32_t offset, uint32_t length);
+
+        /// Sends the "have" message to the peer for the piece with the given index
+        void sendHave(uint32_t pieceIdx);
 
     private:
         /// The peer's identifier

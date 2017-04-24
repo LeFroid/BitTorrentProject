@@ -59,6 +59,9 @@ namespace network
         /// Attempts to determine the endpoint of the tracker service, based on the Torrent File's announce URL
         boost::asio::ip::tcp::endpoint findTrackerEndpointTCP();
 
+        /// Dummy method
+        void sendPieceHave() { }
+
     private:
         /// Gets peer information from the given string, sending it in a more useful format to the TorrentState
         /// object
