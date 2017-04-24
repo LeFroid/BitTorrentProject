@@ -47,7 +47,6 @@ namespace gui
         m_labelRatioPiecesHave(nullptr),
         m_labelFileSize(nullptr)
     {
-        //initialize();
     }
 
     void TorrentCell::assignTorrentState(std::shared_ptr<TorrentState> state)

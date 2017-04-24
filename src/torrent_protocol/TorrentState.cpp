@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 TorrentState::TorrentState(const std::string &torrentFilePath) :
     m_file(std::make_shared<TorrentFile>(torrentFilePath)),
     m_numPeers(0),
-    m_numPeersCanUnchoke(5),
+    m_numPeersCanUnchoke(10),
     m_downloadComplete(false),
     m_pieceMgr(m_file),
     m_torrentFileName()

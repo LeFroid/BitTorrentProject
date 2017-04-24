@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace gui
 {
     class Button;
+    class Label;
     class TextInputBox;
     class TorrentTable;
 
@@ -56,12 +57,24 @@ namespace gui
         /// Attempts to begin the download process of a torrent file
         void downloadTorrent();
 
+        /// Called when the button is clicked to signal a change in the download directory
+        void onChangeDownloadDir();
+
     private:
         /// Text input box, used to enter the path of a .torrent file to begin downloading
         TextInputBox *m_inputBoxTorrentFile;
 
+        /// Label explaining the download directory input box
+        Label *m_labelDownloadDir;
+
+        /// Text input box, used to show and/or modify the directory in which torrent files are downloaded
+        TextInputBox *m_inputBoxDownloadDir;
+
         /// Button used to begin downloading the torrent file associated with the input in the text box
         Button *m_buttonAddTorrent;
+
+        /// Button used to confirm a change to the download directory
+        Button *m_buttonChangeDownloadDir;
 
         /// Table which stores the cells representing the progress and stats of each torrent file being downloaded
         TorrentTable *m_torrentTable;

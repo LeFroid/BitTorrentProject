@@ -34,16 +34,35 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace gui
 {
+    Uint32 tableUpdateTimerCallback(Uint32 interval, void *param)
+    {
+        TorrentTable *obj = (TorrentTable*)param;
+        if (obj)
+            obj->timerCallbackUpdate();
+        return interval;
+    }
+
+    void updateTable(void *param)
+    {
+        TorrentTable *obj = (TorrentTable*)param;
+        if (obj)
+            obj->updateCells();
+    }
+
     TorrentTable::TorrentTable(GUIObject *parent, Position position, Size size) :
         GUIObject(parent, position, size),
         m_vboxCells(nullptr),
-        m_cells(),
-        m_counter(0)
+        m_cells()
     {
         m_vboxCells = ObjectManager::getInstance()->createObject<VBoxLayout>(this, m_position, m_size);
 
-        m_vboxCells->registerMouseEvent(MouseEvent::Moved, SDLK_u, std::bind(&TorrentTable::updateCells, this));
+        // start timer on 500ms interval
+        m_updateTimerID = SDL_AddTimer(500, tableUpdateTimerCallback, this);
+    }
 
+    TorrentTable::~TorrentTable()
+    {
+        SDL_RemoveTimer(m_updateTimerID);
     }
 
     void TorrentTable::addTorrent(std::shared_ptr<TorrentState> torrent)
@@ -51,7 +70,6 @@ namespace gui
         TorrentCell *cell = ObjectManager::getInstance()->createObject<TorrentCell>(this, getPosition(), Size(m_size.width, m_size.height / 6),
             Color(255, 255, 255, 255));
         cell->setHidden(false);
-        cell->registerMouseEvent(MouseEvent::Moved, std::bind(&TorrentTable::updateCells, this));
         m_cells.push_back(cell->getObjectID());
 
         m_vboxCells->addItem(cell);
@@ -68,10 +86,6 @@ namespace gui
 
     void TorrentTable::updateCells()
     {
-        if (m_counter++ < 10)
-            return;
-        m_counter = 0;
-
         ObjectManager *objMgr = ObjectManager::getInstance();
         for (uint32_t cellID : m_cells)
         {
@@ -86,5 +100,22 @@ namespace gui
         }
 
         getRenderer()->update();
+    }
+
+    void TorrentTable::timerCallbackUpdate()
+    {
+        // Push update table event onto event handler
+        SDL_Event event;
+        SDL_UserEvent userevent;
+
+        userevent.type = SDL_USEREVENT;
+        userevent.code = 0;
+        userevent.data1 = (void*)&updateTable;
+        userevent.data2 = this;
+
+        event.type = SDL_USEREVENT;
+        event.user = userevent;
+
+        SDL_PushEvent(&event);
     }
 }

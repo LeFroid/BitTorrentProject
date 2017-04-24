@@ -23,9 +23,12 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <boost/filesystem.hpp>
+
 #include "MainScreen.h"
 
 #include "Button.h"
+#include "Label.h"
 #include "ObjectManager.h"
 #include "Renderer.h"
 #include "TextInputBox.h"
@@ -39,7 +42,10 @@ namespace gui
     MainScreen::MainScreen(GUIObject *parent, std::string themeFile) :
         GUIObject(parent),
         m_inputBoxTorrentFile(nullptr),
+        m_labelDownloadDir(nullptr),
+        m_inputBoxDownloadDir(nullptr),
         m_buttonAddTorrent(nullptr),
+        m_buttonChangeDownloadDir(nullptr),
         m_torrentTable(nullptr),
         m_theme(themeFile)
     {
@@ -57,6 +63,9 @@ namespace gui
         // Draw children
         m_inputBoxTorrentFile->draw();
         m_buttonAddTorrent->draw();
+        m_labelDownloadDir->draw();
+        m_inputBoxDownloadDir->draw();
+        m_buttonChangeDownloadDir->draw();
         m_torrentTable->draw();
 
         render->update();
@@ -76,7 +85,7 @@ namespace gui
 
         ObjectManager *objMgr = ObjectManager::getInstance();
 
-        // Create input box & enter button
+        // Create torrent input box & enter button
         m_inputBoxTorrentFile = objMgr->createObject<TextInputBox>(this, Position(objPos.x + 5, objPos.y + 10),
             Size(objSize.width / 2, objSize.height / 14), m_theme.getTextBoxColor(), "Torrent file path..");
         m_inputBoxTorrentFile->setFontPointSize(16);
@@ -87,7 +96,28 @@ namespace gui
         m_buttonAddTorrent->setFontPointSize(18);
         m_buttonAddTorrent->setText("Download");
         m_buttonAddTorrent->registerMouseEvent(MouseEvent::ReleasedLeft, std::bind(&MainScreen::downloadTorrent, this));
-        m_buttonAddTorrent->setHint("Begin to download the torrent file");
+        m_buttonAddTorrent->setHint("Begin to download the torrent file.");
+
+        // Create download directory widgets
+        m_labelDownloadDir = objMgr->createObject<Label>(this, Position(objPos.x + 5, objPos.y + objSize.height / 10),
+            Size(objSize.width / 4, objSize.height / 19), Color(255, 255, 255, 255), "Download Directory:");
+        m_labelDownloadDir->setFontPointSize(12);
+
+        m_inputBoxDownloadDir = objMgr->createObject<TextInputBox>(this, Position(objPos.x + 5, objPos.y + objSize.height / 8),
+            Size(objSize.width / 4 - 5, objSize.height / 20), m_theme.getTextBoxColor());
+        m_inputBoxDownloadDir->setFontPointSize(10);
+
+        boost::filesystem::path downloadDir(eTorrentMgr.getDownloadDirectory());
+        boost::filesystem::path downloadDirAbs = boost::filesystem::absolute(downloadDir);
+        m_inputBoxDownloadDir->setText(downloadDirAbs.string());
+
+        m_buttonChangeDownloadDir = objMgr->createObject<Button>(this, Position(objPos.x + 5, objPos.y + objSize.height / 5),
+            Size(objSize.width / 8, objSize.height / 20), m_theme.getButtonColor());
+        m_buttonChangeDownloadDir->setMouseHoverColor(m_theme.getButtonHoverColor());
+        m_buttonChangeDownloadDir->setFontPointSize(18);
+        m_buttonChangeDownloadDir->setText("Save");
+        m_buttonChangeDownloadDir->registerMouseEvent(MouseEvent::ReleasedLeft, std::bind(&MainScreen::onChangeDownloadDir, this));
+        m_buttonChangeDownloadDir->setHint("Click to confirm a change to the download directory for torrents.");
 
         // Create table
         m_torrentTable = objMgr->createObject<TorrentTable>(this, Position(objPos.x + objSize.width / 4, objPos.y + objSize.height / 8),
@@ -105,5 +135,16 @@ namespace gui
         std::shared_ptr<TorrentState> torrent = eTorrentMgr.addTorrent(filePath);
         if (torrent.get())
             m_torrentTable->addTorrent(torrent);
+    }
+
+    void MainScreen::onChangeDownloadDir()
+    {
+        boost::filesystem::path downloadDir = m_inputBoxDownloadDir->getText();
+        boost::system::error_code ec;
+        if (boost::filesystem::is_directory(downloadDir, ec))
+        {
+            std::string downloadStr = downloadDir.string();
+            eTorrentMgr.setDownloadDirectory(downloadStr);
+        }
     }
 }

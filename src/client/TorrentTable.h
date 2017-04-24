@@ -44,17 +44,22 @@ namespace gui
         /// Constructor - requires parent object, a positon and size
         TorrentTable(GUIObject *parent, Position position, Size size);
 
+        /// Torrent table destructor
+        ~TorrentTable();
+
         /// Adds a new cell to the table, which will report the stats regarding the
         /// given TorrentState pointer
         void addTorrent(std::shared_ptr<TorrentState> torrent);
 
+        /// Updates any cells in the table
+        void updateCells();
+
+        /// Called by the table update timer; callback will push a user event to call updateCells() method
+        void timerCallbackUpdate();
+
     public:
         /// Draws the torrent table and its cells onto the parent
         void draw() override;
-
-    private:
-        /// Updates any cells in the table
-        void updateCells();
 
     private:
         /// Vertical layout manager
@@ -63,7 +68,7 @@ namespace gui
         /// Stores the object ids of each cell in the table
         std::vector<GUIObjectID> m_cells;
 
-        /// Counts up to a certain interval before calling updateCells()
-        uint32_t m_counter;
+        /// Timer ID for table update event
+        SDL_TimerID m_updateTimerID;
     };
 }
