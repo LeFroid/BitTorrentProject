@@ -1,0 +1,15 @@
+<map id="src/torrent_protocol/TorrentMgr.h" name="src/torrent_protocol/TorrentMgr.h">
+<area shape="rect" id="node7" href="$_configuration_8h.html" title="Configuration.h" alt="" coords="1735,102,1843,129"/>
+<area shape="rect" id="node11" href="$_connection_mgr_8h.html" title="ConnectionMgr.h" alt="" coords="893,191,1011,218"/>
+<area shape="rect" id="node28" href="$_torrent_state_8h.html" title="TorrentState.h" alt="" coords="974,273,1077,300"/>
+<area shape="rect" id="node33" href="$_listener_8h.html" title="Listener.h" alt="" coords="1192,102,1269,129"/>
+<area shape="rect" id="node34" href="$_peer_8h.html" title="Peer.h" alt="" coords="1272,191,1331,218"/>
+<area shape="rect" id="node35" href="$_tracker_client_8h.html" title="TrackerClient.h" alt="" coords="1006,102,1117,129"/>
+<area shape="rect" id="node36" href="$_hash_map_utils_8h.html" title="HashMapUtils.h" alt="" coords="1721,191,1836,218"/>
+<area shape="rect" id="node16" href="$_log_helper_8h.html" title="LogHelper.h" alt="" coords="250,273,342,300"/>
+<area shape="rect" id="node23" href="$_socket_8h.html" title="Socket.h" alt="" coords="1195,273,1267,300"/>
+<area shape="rect" id="node17" href="$_log_8h.html" title="Log.h" alt="" coords="381,348,435,375"/>
+<area shape="rect" id="node26" href="$_mutable_buffer_8h.html" title="MutableBuffer.h" alt="" coords="1484,348,1596,375"/>
+<area shape="rect" id="node30" href="$_piece_mgr_8h.html" title="PieceMgr.h" alt="" coords="900,348,988,375"/>
+<area shape="rect" id="node31" href="$_torrent_fragment_8h.html" title="TorrentFragment.h" alt="" coords="737,423,866,449"/>
+</map>

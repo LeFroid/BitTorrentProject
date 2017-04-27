@@ -1,0 +1,8 @@
+<map id="gui::Table" name="gui::Table">
+<area shape="rect" id="node2" href="$classgui_1_1_g_u_i_object.html" title="gui::GUIObject" alt="" coords="129,95,235,121"/>
+<area shape="rect" id="node6" href="$classgui_1_1_layout.html" title="gui::Layout" alt="" coords="67,184,153,211"/>
+<area shape="rect" id="node3" href="$structgui_1_1_position.html" title="Used to represent the position of an object in the GUI. " alt="" coords="83,5,175,32"/>
+<area shape="rect" id="node4" href="$structgui_1_1_size.html" title="Used to represent the size of an object. " alt="" coords="199,5,272,32"/>
+<area shape="rect" id="node5" href="$classgui_1_1_v_box_layout.html" title="gui::VBoxLayout" alt="" coords="51,273,169,300"/>
+<area shape="rect" id="node7" href="$structgui_1_1_margins.html" title="Represents the margins of a layout object. " alt="" coords="5,95,100,121"/>
+</map>

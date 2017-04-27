@@ -1,0 +1,6 @@
+<map id="src/framework/GUI/TextBox.h" name="src/framework/GUI/TextBox.h">
+<area shape="rect" id="node2" href="$_text_box_8cpp.html" title="src/framework/GUI/TextBox.cpp" alt="" coords="5,87,215,114"/>
+<area shape="rect" id="node3" href="$_text_input_box_8h.html" title="Represents a box that is used to receive text input from the user when activated. ..." alt="" coords="239,80,427,121"/>
+<area shape="rect" id="node4" href="$_main_screen_8cpp.html" title="src/client/MainScreen.cpp" alt="" coords="143,177,317,203"/>
+<area shape="rect" id="node5" href="$_text_input_box_8cpp.html" title="src/framework/GUI/TextInput\lBox.cpp" alt="" coords="341,169,529,211"/>
+</map>

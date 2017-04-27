@@ -1,0 +1,10 @@
+<map id="gui::TextInputBox" name="gui::TextInputBox">
+<area shape="rect" id="node2" href="$classgui_1_1_text_box.html" title="gui::TextBox" alt="" coords="244,273,339,300"/>
+<area shape="rect" id="node3" href="$classgui_1_1_box.html" title="gui::Box" alt="" coords="122,184,191,211"/>
+<area shape="rect" id="node4" href="$classgui_1_1_g_u_i_object.html" title="gui::GUIObject" alt="" coords="51,95,158,121"/>
+<area shape="rect" id="node5" href="$structgui_1_1_position.html" title="Used to represent the position of an object in the GUI. " alt="" coords="5,5,97,32"/>
+<area shape="rect" id="node6" href="$structgui_1_1_size.html" title="Used to represent the size of an object. " alt="" coords="121,5,195,32"/>
+<area shape="rect" id="node7" href="$classgui_1_1_font_holder.html" title="Represents an object that holds a pointer to a font, for the rendering of text. " alt="" coords="237,184,346,211"/>
+<area shape="rect" id="node8" href="$classgui_1_1_font.html" title="gui::Font" alt="" coords="267,95,337,121"/>
+<area shape="rect" id="node9" href="$structgui_1_1_color.html" title="Contains the properties of colors used for the interface. " alt="" coords="371,184,447,211"/>
+</map>

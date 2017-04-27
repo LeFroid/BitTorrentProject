@@ -1,0 +1,6 @@
+<map id="gui::TextInputBox" name="gui::TextInputBox">
+<area shape="rect" id="node2" href="$classgui_1_1_text_box.html" title="gui::TextBox" alt="" coords="67,155,162,181"/>
+<area shape="rect" id="node3" href="$classgui_1_1_box.html" title="gui::Box" alt="" coords="24,80,93,107"/>
+<area shape="rect" id="node4" href="$classgui_1_1_g_u_i_object.html" title="gui::GUIObject" alt="" coords="5,5,112,32"/>
+<area shape="rect" id="node5" href="$classgui_1_1_font_holder.html" title="Represents an object that holds a pointer to a font, for the rendering of text. " alt="" coords="117,80,227,107"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="gui::HBoxLayout" name="gui::HBoxLayout">
+<area shape="rect" id="node2" href="$classgui_1_1_layout.html" title="gui::Layout" alt="" coords="166,184,251,211"/>
+<area shape="rect" id="node3" href="$classgui_1_1_g_u_i_object.html" title="gui::GUIObject" alt="" coords="51,95,158,121"/>
+<area shape="rect" id="node4" href="$structgui_1_1_position.html" title="Used to represent the position of an object in the GUI. " alt="" coords="5,5,97,32"/>
+<area shape="rect" id="node5" href="$structgui_1_1_size.html" title="Used to represent the size of an object. " alt="" coords="121,5,195,32"/>
+<area shape="rect" id="node6" href="$structgui_1_1_margins.html" title="Represents the margins of a layout object. " alt="" coords="267,95,361,121"/>
+</map>

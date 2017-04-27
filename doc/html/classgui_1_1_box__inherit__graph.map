@@ -1,0 +1,7 @@
+<map id="gui::Box" name="gui::Box">
+<area shape="rect" id="node3" href="$classgui_1_1_checkbox.html" title="gui::Checkbox" alt="" coords="5,155,111,181"/>
+<area shape="rect" id="node4" href="$classgui_1_1_text_box.html" title="gui::TextBox" alt="" coords="135,155,229,181"/>
+<area shape="rect" id="node6" href="$classgui_1_1_torrent_cell.html" title="Displays. " alt="" coords="254,155,363,181"/>
+<area shape="rect" id="node2" href="$classgui_1_1_g_u_i_object.html" title="gui::GUIObject" alt="" coords="129,5,235,32"/>
+<area shape="rect" id="node5" href="$classgui_1_1_text_input_box.html" title="gui::TextInputBox" alt="" coords="121,229,243,256"/>
+</map>

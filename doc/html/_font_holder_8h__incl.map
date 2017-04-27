@@ -1,0 +1,6 @@
+<map id="src/framework/FontHolder.h" name="src/framework/FontHolder.h">
+<area shape="rect" id="node2" href="$_font_storage_8h.html" title="Stores instances of specific fonts, which can be accessed through this class at any time..." alt="" coords="151,80,253,107"/>
+<area shape="rect" id="node6" href="$_font_8h.html" title="Represents a TTF font that can be used by the renderer to display text. " alt="" coords="255,155,312,181"/>
+<area shape="rect" id="node11" href="$_singleton_8h.html" title="Singleton.h" alt="" coords="336,155,423,181"/>
+<area shape="rect" id="node9" href="$_g_u_i_properties_8h.html" title="GUIProperties.h" alt="" coords="344,229,457,256"/>
+</map>

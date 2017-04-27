@@ -1,0 +1,4 @@
+<map id="gui::Label" name="gui::Label">
+<area shape="rect" id="node2" href="$classgui_1_1_g_u_i_object.html" title="gui::GUIObject" alt="" coords="5,5,112,32"/>
+<area shape="rect" id="node3" href="$classgui_1_1_font_holder.html" title="Represents an object that holds a pointer to a font, for the rendering of text. " alt="" coords="136,5,245,32"/>
+</map>

@@ -1,0 +1,16 @@
+<map id="src/framework/ObjectManager.h" name="src/framework/ObjectManager.h">
+<area shape="rect" id="node2" href="$main_8cpp.html" title="src/client/main.cpp" alt="" coords="5,80,139,107"/>
+<area shape="rect" id="node3" href="$_main_screen_8cpp.html" title="src/client/MainScreen.cpp" alt="" coords="163,80,338,107"/>
+<area shape="rect" id="node4" href="$_progress_bar_8cpp.html" title="src/client/ProgressBar.cpp" alt="" coords="363,80,541,107"/>
+<area shape="rect" id="node5" href="$_torrent_cell_8cpp.html" title="src/client/TorrentCell.cpp" alt="" coords="566,80,733,107"/>
+<area shape="rect" id="node6" href="$_torrent_table_8cpp.html" title="src/client/TorrentTable.cpp" alt="" coords="757,80,937,107"/>
+<area shape="rect" id="node7" href="$_event_handler_8cpp.html" title="src/framework/EventHandler.cpp" alt="" coords="961,80,1173,107"/>
+<area shape="rect" id="node8" href="$_box_8cpp.html" title="src/framework/GUI/Box.cpp" alt="" coords="1197,80,1379,107"/>
+<area shape="rect" id="node9" href="$_g_u_i_object_8cpp.html" title="src/framework/GUI/GUIObject.cpp" alt="" coords="1404,80,1625,107"/>
+<area shape="rect" id="node10" href="$_h_box_layout_8cpp.html" title="src/framework/GUI/HBoxLayout.cpp" alt="" coords="1650,80,1881,107"/>
+<area shape="rect" id="node11" href="$_layout_8cpp.html" title="src/framework/GUI/Layout.cpp" alt="" coords="1905,80,2103,107"/>
+<area shape="rect" id="node12" href="$_table_8cpp.html" title="src/framework/GUI/Table.cpp" alt="" coords="2128,80,2323,107"/>
+<area shape="rect" id="node13" href="$_v_box_layout_8cpp.html" title="src/framework/GUI/VBoxLayout.cpp" alt="" coords="2347,80,2578,107"/>
+<area shape="rect" id="node14" href="$_window_8cpp.html" title="src/framework/GUI/Window.cpp" alt="" coords="2602,80,2809,107"/>
+<area shape="rect" id="node15" href="$_object_manager_8cpp.html" title="src/framework/ObjectManager.cpp" alt="" coords="2833,80,3060,107"/>
+</map>

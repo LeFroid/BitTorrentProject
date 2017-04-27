@@ -1,0 +1,11 @@
+<map id="src/framework/GUI/Window.cpp" name="src/framework/GUI/Window.cpp">
+<area shape="rect" id="node2" href="$_g_u_i_object_8h.html" title="The base class for all graphical objects. " alt="" coords="828,155,921,181"/>
+<area shape="rect" id="node11" href="$_log_helper_8h.html" title="LogHelper.h" alt="" coords="494,80,586,107"/>
+<area shape="rect" id="node20" href="$_object_manager_8h.html" title="Manages the memory and usage of objects derived from the GUIObject base class. " alt="" coords="659,80,783,107"/>
+<area shape="rect" id="node23" href="$_renderer_8h.html" title="Used to render objects, images, etc. to the graphical user interface. " alt="" coords="1135,155,1220,181"/>
+<area shape="rect" id="node25" href="$_window_8h.html" title="Object that is responsible for drawing the window on the client&#39;s screen. This maintains ownership of..." alt="" coords="874,80,953,107"/>
+<area shape="rect" id="node7" href="$_g_u_i_events_8h.html" title="GUIEvents.h" alt="" coords="652,229,745,256"/>
+<area shape="rect" id="node8" href="$_g_u_i_properties_8h.html" title="GUIProperties.h" alt="" coords="871,229,985,256"/>
+<area shape="rect" id="node14" href="$_log_8h.html" title="Log.h" alt="" coords="275,155,330,181"/>
+<area shape="rect" id="node22" href="$_singleton_8h.html" title="Singleton.h" alt="" coords="623,155,710,181"/>
+</map>

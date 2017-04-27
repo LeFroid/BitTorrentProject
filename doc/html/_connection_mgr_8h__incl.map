@@ -1,0 +1,9 @@
+<map id="src/torrent_protocol/network/ConnectionMgr.h" name="src/torrent_protocol/network/ConnectionMgr.h">
+<area shape="rect" id="node8" href="$_log_helper_8h.html" title="LogHelper.h" alt="" coords="521,95,613,121"/>
+<area shape="rect" id="node17" href="$_socket_8h.html" title="Socket.h" alt="" coords="882,95,954,121"/>
+<area shape="rect" id="node22" href="$_torrent_state_8h.html" title="TorrentState.h" alt="" coords="1165,95,1268,121"/>
+<area shape="rect" id="node10" href="$_log_8h.html" title="Log.h" alt="" coords="384,169,438,196"/>
+<area shape="rect" id="node20" href="$_mutable_buffer_8h.html" title="MutableBuffer.h" alt="" coords="664,169,776,196"/>
+<area shape="rect" id="node24" href="$_piece_mgr_8h.html" title="PieceMgr.h" alt="" coords="1254,169,1342,196"/>
+<area shape="rect" id="node25" href="$_torrent_fragment_8h.html" title="TorrentFragment.h" alt="" coords="1244,244,1373,271"/>
+</map>

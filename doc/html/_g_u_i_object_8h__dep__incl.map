@@ -1,0 +1,39 @@
+<map id="src/framework/GUI/GUIObject.h" name="src/framework/GUI/GUIObject.h">
+<area shape="rect" id="node2" href="$_main_screen_8h.html" title="src/client/MainScreen.h" alt="" coords="1947,80,2105,107"/>
+<area shape="rect" id="node5" href="$_torrent_table_8h.html" title="src/client/TorrentTable.h" alt="" coords="487,155,651,181"/>
+<area shape="rect" id="node7" href="$_progress_bar_8h.html" title="src/client/ProgressBar.h" alt="" coords="1153,80,1315,107"/>
+<area shape="rect" id="node10" href="$_object_manager_8h.html" title="Manages the memory and usage of objects derived from the GUIObject base class. " alt="" coords="2250,80,2461,107"/>
+<area shape="rect" id="node13" href="$_g_u_i_object_8cpp.html" title="src/framework/GUI/GUIObject.cpp" alt="" coords="3991,155,4213,181"/>
+<area shape="rect" id="node18" href="$_window_8cpp.html" title="src/framework/GUI/Window.cpp" alt="" coords="3760,155,3967,181"/>
+<area shape="rect" id="node20" href="$_box_8h.html" title="Represents a simple rectangle with an assigned color, size and position. " alt="" coords="1340,80,1507,107"/>
+<area shape="rect" id="node28" href="$_button_8h.html" title="Represents a button that can display text and be clicked, hovered over, etc by the user..." alt="" coords="359,80,539,107"/>
+<area shape="rect" id="node30" href="$_window_8h.html" title="Object that is responsible for drawing the window on the client&#39;s screen. This maintains ownership of..." alt="" coords="3487,80,3677,107"/>
+<area shape="rect" id="node31" href="$_layout_8h.html" title="This is the base class for all geometry handling objects. " alt="" coords="2808,80,2991,107"/>
+<area shape="rect" id="node34" href="$_table_8h.html" title="A table object, of n rows, m columns, which are constructed with Box objects. " alt="" coords="3506,155,3685,181"/>
+<area shape="rect" id="node35" href="$_image_8h.html" title="Represents an image file that is mapped on to the GUI. " alt="" coords="4126,80,4307,107"/>
+<area shape="rect" id="node37" href="$_label_8h.html" title="The label class represents an area of text which does not require a container other than a window obj..." alt="" coords="13,155,191,181"/>
+<area shape="rect" id="node3" href="$main_8cpp.html" title="src/client/main.cpp" alt="" coords="1959,155,2093,181"/>
+<area shape="rect" id="node4" href="$_main_screen_8cpp.html" title="src/client/MainScreen.cpp" alt="" coords="1133,326,1308,353"/>
+<area shape="rect" id="node6" href="$_torrent_table_8cpp.html" title="src/client/TorrentTable.cpp" alt="" coords="1909,237,2089,263"/>
+<area shape="rect" id="node8" href="$_progress_bar_8cpp.html" title="src/client/ProgressBar.cpp" alt="" coords="1397,155,1575,181"/>
+<area shape="rect" id="node9" href="$_torrent_cell_8cpp.html" title="src/client/TorrentCell.cpp" alt="" coords="607,237,773,263"/>
+<area shape="rect" id="node11" href="$_event_handler_8cpp.html" title="src/framework/EventHandler.cpp" alt="" coords="3031,155,3243,181"/>
+<area shape="rect" id="node12" href="$_box_8cpp.html" title="src/framework/GUI/Box.cpp" alt="" coords="1600,155,1783,181"/>
+<area shape="rect" id="node14" href="$_h_box_layout_8cpp.html" title="src/framework/GUI/HBoxLayout.cpp" alt="" coords="2635,237,2865,263"/>
+<area shape="rect" id="node15" href="$_layout_8cpp.html" title="src/framework/GUI/Layout.cpp" alt="" coords="2569,155,2768,181"/>
+<area shape="rect" id="node16" href="$_table_8cpp.html" title="src/framework/GUI/Table.cpp" alt="" coords="2890,237,3085,263"/>
+<area shape="rect" id="node17" href="$_v_box_layout_8cpp.html" title="src/framework/GUI/VBoxLayout.cpp" alt="" coords="2380,237,2611,263"/>
+<area shape="rect" id="node19" href="$_object_manager_8cpp.html" title="src/framework/ObjectManager.cpp" alt="" coords="2167,155,2394,181"/>
+<area shape="rect" id="node21" href="$_torrent_cell_8h.html" title="src/client/TorrentCell.h" alt="" coords="953,155,1104,181"/>
+<area shape="rect" id="node22" href="$_checkbox_8h.html" title="Represents a checkbox, which can be used for various purposes such as configuration setting markers..." alt="" coords="726,155,929,181"/>
+<area shape="rect" id="node24" href="$_text_box_8h.html" title="Represents a box with any kind of text within it. " alt="" coords="1128,155,1321,181"/>
+<area shape="rect" id="node23" href="$_checkbox_8cpp.html" title="src/framework/GUI/Checkbox.cpp" alt="" coords="798,237,1017,263"/>
+<area shape="rect" id="node25" href="$_text_box_8cpp.html" title="src/framework/GUI/TextBox.cpp" alt="" coords="1120,237,1329,263"/>
+<area shape="rect" id="node26" href="$_text_input_box_8h.html" title="Represents a box that is used to receive text input from the user when activated. ..." alt="" coords="2168,229,2356,271"/>
+<area shape="rect" id="node27" href="$_text_input_box_8cpp.html" title="src/framework/GUI/TextInput\lBox.cpp" alt="" coords="2897,319,3085,360"/>
+<area shape="rect" id="node29" href="$_button_8cpp.html" title="src/framework/GUI/Button.cpp" alt="" coords="215,155,411,181"/>
+<area shape="rect" id="node32" href="$_h_box_layout_8h.html" title="src/framework/GUI/HBoxLayout.h" alt="" coords="3267,155,3481,181"/>
+<area shape="rect" id="node33" href="$_v_box_layout_8h.html" title="Vertical box layout object, aligns the size of its sub&#45;items automatically. " alt="" coords="2792,155,3007,181"/>
+<area shape="rect" id="node36" href="$_image_8cpp.html" title="src/framework/GUI/Image.cpp" alt="" coords="4237,155,4434,181"/>
+<area shape="rect" id="node38" href="$_label_8cpp.html" title="src/framework/GUI/Label.cpp" alt="" coords="5,237,199,263"/>
+</map>

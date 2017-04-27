@@ -1,0 +1,12 @@
+<map id="src/torrent_protocol/network/Peer.h" name="src/torrent_protocol/network/Peer.h">
+<area shape="rect" id="node2" href="$_listener_8h.html" title="src/torrent_protocol\l/network/Listener.h" alt="" coords="288,95,420,136"/>
+<area shape="rect" id="node4" href="$_torrent_mgr_8h.html" title="src/torrent_protocol\l/TorrentMgr.h" alt="" coords="361,184,493,225"/>
+<area shape="rect" id="node7" href="$_peer_8cpp.html" title="src/torrent_protocol\l/network/Peer.cpp" alt="" coords="675,273,807,315"/>
+<area shape="rect" id="node10" href="$_tracker_client_8h.html" title="src/torrent_protocol\l/network/TrackerClient.h" alt="" coords="495,95,658,136"/>
+<area shape="rect" id="node3" href="$_listener_8cpp.html" title="src/torrent_protocol\l/network/Listener.cpp" alt="" coords="192,184,337,225"/>
+<area shape="rect" id="node5" href="$main_8cpp.html" title="src/client/main.cpp" alt="" coords="517,281,650,307"/>
+<area shape="rect" id="node6" href="$_main_screen_8cpp.html" title="src/client/MainScreen.cpp" alt="" coords="5,281,180,307"/>
+<area shape="rect" id="node8" href="$_piece_mgr_8cpp.html" title="src/torrent_protocol\l/PieceMgr.cpp" alt="" coords="204,273,336,315"/>
+<area shape="rect" id="node9" href="$_torrent_mgr_8cpp.html" title="src/torrent_protocol\l/TorrentMgr.cpp" alt="" coords="360,273,492,315"/>
+<area shape="rect" id="node11" href="$_tracker_client_8cpp.html" title="src/torrent_protocol\l/network/TrackerClient.cpp" alt="" coords="518,184,697,225"/>
+</map>

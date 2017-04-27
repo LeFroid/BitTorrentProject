@@ -1,0 +1,10 @@
+<map id="src/framework/GUI/Layout.h" name="src/framework/GUI/Layout.h">
+<area shape="rect" id="node2" href="$_h_box_layout_8h.html" title="src/framework/GUI/HBoxLayout.h" alt="" coords="13,80,228,107"/>
+<area shape="rect" id="node5" href="$_layout_8cpp.html" title="src/framework/GUI/Layout.cpp" alt="" coords="252,80,451,107"/>
+<area shape="rect" id="node6" href="$_v_box_layout_8h.html" title="Vertical box layout object, aligns the size of its sub&#45;items automatically. " alt="" coords="679,80,893,107"/>
+<area shape="rect" id="node9" href="$_table_8h.html" title="A table object, of n rows, m columns, which are constructed with Box objects. " alt="" coords="475,80,654,107"/>
+<area shape="rect" id="node3" href="$_h_box_layout_8cpp.html" title="src/framework/GUI/HBoxLayout.cpp" alt="" coords="5,155,236,181"/>
+<area shape="rect" id="node4" href="$_table_8cpp.html" title="src/framework/GUI/Table.cpp" alt="" coords="467,155,662,181"/>
+<area shape="rect" id="node7" href="$_torrent_table_8cpp.html" title="src/client/TorrentTable.cpp" alt="" coords="691,155,871,181"/>
+<area shape="rect" id="node8" href="$_v_box_layout_8cpp.html" title="src/framework/GUI/VBoxLayout.cpp" alt="" coords="895,155,1125,181"/>
+</map>

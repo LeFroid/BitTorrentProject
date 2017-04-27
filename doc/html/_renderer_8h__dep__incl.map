@@ -1,0 +1,15 @@
+<map id="src/framework/GUI/Renderer.h" name="src/framework/GUI/Renderer.h">
+<area shape="rect" id="node2" href="$_main_screen_8cpp.html" title="src/client/MainScreen.cpp" alt="" coords="5,87,180,114"/>
+<area shape="rect" id="node3" href="$_torrent_table_8cpp.html" title="src/client/TorrentTable.cpp" alt="" coords="204,87,384,114"/>
+<area shape="rect" id="node4" href="$_font_8cpp.html" title="src/framework/Font.cpp" alt="" coords="408,87,567,114"/>
+<area shape="rect" id="node5" href="$_box_8cpp.html" title="src/framework/GUI/Box.cpp" alt="" coords="591,87,773,114"/>
+<area shape="rect" id="node6" href="$_button_8cpp.html" title="src/framework/GUI/Button.cpp" alt="" coords="797,87,993,114"/>
+<area shape="rect" id="node7" href="$_checkbox_8cpp.html" title="src/framework/GUI/Checkbox.cpp" alt="" coords="1018,87,1237,114"/>
+<area shape="rect" id="node8" href="$_g_u_i_object_8cpp.html" title="src/framework/GUI/GUIObject.cpp" alt="" coords="1261,87,1482,114"/>
+<area shape="rect" id="node9" href="$_image_8cpp.html" title="src/framework/GUI/Image.cpp" alt="" coords="1506,87,1703,114"/>
+<area shape="rect" id="node10" href="$_label_8cpp.html" title="src/framework/GUI/Label.cpp" alt="" coords="1728,87,1921,114"/>
+<area shape="rect" id="node11" href="$_renderer_8cpp.html" title="src/framework/GUI/Renderer.cpp" alt="" coords="1946,87,2159,114"/>
+<area shape="rect" id="node12" href="$_text_box_8cpp.html" title="src/framework/GUI/TextBox.cpp" alt="" coords="2184,87,2393,114"/>
+<area shape="rect" id="node13" href="$_text_input_box_8cpp.html" title="src/framework/GUI/TextInput\lBox.cpp" alt="" coords="2417,80,2605,121"/>
+<area shape="rect" id="node14" href="$_window_8cpp.html" title="src/framework/GUI/Window.cpp" alt="" coords="2629,87,2836,114"/>
+</map>

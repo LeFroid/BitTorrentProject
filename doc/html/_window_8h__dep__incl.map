@@ -1,0 +1,7 @@
+<map id="src/framework/GUI/Window.h" name="src/framework/GUI/Window.h">
+<area shape="rect" id="node2" href="$main_8cpp.html" title="src/client/main.cpp" alt="" coords="5,87,139,114"/>
+<area shape="rect" id="node3" href="$_event_handler_8cpp.html" title="src/framework/EventHandler.cpp" alt="" coords="163,87,375,114"/>
+<area shape="rect" id="node4" href="$_g_u_i_object_8cpp.html" title="src/framework/GUI/GUIObject.cpp" alt="" coords="400,87,621,114"/>
+<area shape="rect" id="node5" href="$_text_input_box_8cpp.html" title="src/framework/GUI/TextInput\lBox.cpp" alt="" coords="646,80,834,121"/>
+<area shape="rect" id="node6" href="$_window_8cpp.html" title="src/framework/GUI/Window.cpp" alt="" coords="858,87,1065,114"/>
+</map>

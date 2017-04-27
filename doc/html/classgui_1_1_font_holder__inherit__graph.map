@@ -1,0 +1,6 @@
+<map id="gui::FontHolder" name="gui::FontHolder">
+<area shape="rect" id="node2" href="$classgui_1_1_button.html" title="gui::Button" alt="" coords="5,80,88,107"/>
+<area shape="rect" id="node3" href="$classgui_1_1_label.html" title="gui::Label" alt="" coords="113,80,191,107"/>
+<area shape="rect" id="node4" href="$classgui_1_1_text_box.html" title="gui::TextBox" alt="" coords="215,80,310,107"/>
+<area shape="rect" id="node5" href="$classgui_1_1_text_input_box.html" title="gui::TextInputBox" alt="" coords="201,155,324,181"/>
+</map>

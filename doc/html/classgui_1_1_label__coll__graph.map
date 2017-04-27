@@ -1,0 +1,8 @@
+<map id="gui::Label" name="gui::Label">
+<area shape="rect" id="node2" href="$classgui_1_1_g_u_i_object.html" title="gui::GUIObject" alt="" coords="51,95,158,121"/>
+<area shape="rect" id="node3" href="$structgui_1_1_position.html" title="Used to represent the position of an object in the GUI. " alt="" coords="5,5,97,32"/>
+<area shape="rect" id="node4" href="$structgui_1_1_size.html" title="Used to represent the size of an object. " alt="" coords="121,5,195,32"/>
+<area shape="rect" id="node5" href="$classgui_1_1_font_holder.html" title="Represents an object that holds a pointer to a font, for the rendering of text. " alt="" coords="266,95,375,121"/>
+<area shape="rect" id="node6" href="$classgui_1_1_font.html" title="gui::Font" alt="" coords="285,5,356,32"/>
+<area shape="rect" id="node7" href="$structgui_1_1_color.html" title="Contains the properties of colors used for the interface. " alt="" coords="400,95,476,121"/>
+</map>

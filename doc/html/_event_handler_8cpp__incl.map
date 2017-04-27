@@ -1,0 +1,10 @@
+<map id="src/framework/EventHandler.cpp" name="src/framework/EventHandler.cpp">
+<area shape="rect" id="node3" href="$_event_handler_8h.html" title="Handles all relevant events that the application can receive from the SDL backend. " alt="" coords="450,155,561,181"/>
+<area shape="rect" id="node10" href="$_keybinder_8h.html" title="Intermediary between the Event Handler and GUI Objects which binds key input data to trigger specifie..." alt="" coords="335,155,425,181"/>
+<area shape="rect" id="node14" href="$_object_manager_8h.html" title="Manages the memory and usage of objects derived from the GUIObject base class. " alt="" coords="214,80,338,107"/>
+<area shape="rect" id="node19" href="$_window_8h.html" title="Object that is responsible for drawing the window on the client&#39;s screen. This maintains ownership of..." alt="" coords="593,80,671,107"/>
+<area shape="rect" id="node5" href="$_g_u_i_events_8h.html" title="GUIEvents.h" alt="" coords="331,229,424,256"/>
+<area shape="rect" id="node6" href="$_g_u_i_properties_8h.html" title="GUIProperties.h" alt="" coords="550,229,663,256"/>
+<area shape="rect" id="node9" href="$_singleton_8h.html" title="Singleton.h" alt="" coords="219,229,306,256"/>
+<area shape="rect" id="node16" href="$_g_u_i_object_8h.html" title="The base class for all graphical objects. " alt="" coords="585,155,679,181"/>
+</map>

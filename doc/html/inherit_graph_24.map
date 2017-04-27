@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node2" href="$classnetwork_1_1_socket.html" title="Responsible for communications. " alt="" coords="223,31,335,57"/>
+<area shape="rect" id="node3" href="$classnetwork_1_1_peer.html" title="Represents a single remote entity in the swarm, connected to the local client through a TCP socket..." alt="" coords="409,5,507,32"/>
+<area shape="rect" id="node4" href="$classnetwork_1_1_tracker_client.html" title="Handles communications with a tracker service. " alt="" coords="383,56,533,83"/>
+</map>

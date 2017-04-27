@@ -1,0 +1,30 @@
+<map id="src/client/MainScreen.cpp" name="src/client/MainScreen.cpp">
+<area shape="rect" id="node3" href="$_main_screen_8h.html" title="MainScreen.h" alt="" coords="383,244,486,271"/>
+<area shape="rect" id="node17" href="$_button_8h.html" title="Represents a button that can display text and be clicked, hovered over, etc by the user..." alt="" coords="915,162,983,189"/>
+<area shape="rect" id="node22" href="$_label_8h.html" title="The label class represents an area of text which does not require a container other than a window obj..." alt="" coords="1009,162,1074,189"/>
+<area shape="rect" id="node23" href="$_object_manager_8h.html" title="Manages the memory and usage of objects derived from the GUIObject base class. " alt="" coords="693,244,817,271"/>
+<area shape="rect" id="node26" href="$_renderer_8h.html" title="Used to render objects, images, etc. to the graphical user interface. " alt="" coords="396,319,481,345"/>
+<area shape="rect" id="node28" href="$_text_input_box_8h.html" title="Represents a box that is used to receive text input from the user when activated. ..." alt="" coords="600,80,709,107"/>
+<area shape="rect" id="node32" href="$_torrent_table_8h.html" title="TorrentTable.h" alt="" coords="797,80,905,107"/>
+<area shape="rect" id="node33" href="$_torrent_mgr_8h.html" title="TorrentMgr.h" alt="" coords="1796,80,1892,107"/>
+<area shape="rect" id="node42" href="$_torrent_state_8h.html" title="TorrentState.h" alt="" coords="2287,319,2390,345"/>
+<area shape="rect" id="node4" href="$_g_u_i_object_8h.html" title="The base class for all graphical objects. " alt="" coords="817,319,911,345"/>
+<area shape="rect" id="node13" href="$_theme_8h.html" title="Theme.h" alt="" coords="247,319,321,345"/>
+<area shape="rect" id="node9" href="$_g_u_i_events_8h.html" title="GUIEvents.h" alt="" coords="692,393,785,420"/>
+<area shape="rect" id="node10" href="$_g_u_i_properties_8h.html" title="GUIProperties.h" alt="" coords="422,393,535,420"/>
+<area shape="rect" id="node14" href="$_configuration_8h.html" title="Configuration.h" alt="" coords="137,393,245,420"/>
+<area shape="rect" id="node18" href="$_font_holder_8h.html" title="FontHolder.h" alt="" coords="994,244,1089,271"/>
+<area shape="rect" id="node19" href="$_font_storage_8h.html" title="Stores instances of specific fonts, which can be accessed through this class at any time..." alt="" coords="997,319,1099,345"/>
+<area shape="rect" id="node21" href="$_singleton_8h.html" title="Singleton.h" alt="" coords="810,393,897,420"/>
+<area shape="rect" id="node29" href="$_event_handler_8h.html" title="Handles all relevant events that the application can receive from the SDL backend. " alt="" coords="506,319,617,345"/>
+<area shape="rect" id="node30" href="$_text_box_8h.html" title="Represents a box with any kind of text within it. " alt="" coords="614,162,695,189"/>
+<area shape="rect" id="node31" href="$_box_8h.html" title="Represents a simple rectangle with an assigned color, size and position. " alt="" coords="562,244,617,271"/>
+<area shape="rect" id="node37" href="$_connection_mgr_8h.html" title="ConnectionMgr.h" alt="" coords="1669,244,1787,271"/>
+<area shape="rect" id="node46" href="$_listener_8h.html" title="Listener.h" alt="" coords="1805,162,1883,189"/>
+<area shape="rect" id="node47" href="$_peer_8h.html" title="Peer.h" alt="" coords="2103,244,2161,271"/>
+<area shape="rect" id="node49" href="$_tracker_client_8h.html" title="TrackerClient.h" alt="" coords="1983,162,2094,189"/>
+<area shape="rect" id="node50" href="$_hash_map_utils_8h.html" title="HashMapUtils.h" alt="" coords="1863,244,1977,271"/>
+<area shape="rect" id="node39" href="$_log_helper_8h.html" title="LogHelper.h" alt="" coords="1541,319,1633,345"/>
+<area shape="rect" id="node40" href="$_socket_8h.html" title="Socket.h" alt="" coords="2012,319,2084,345"/>
+<area shape="rect" id="node44" href="$_piece_mgr_8h.html" title="PieceMgr.h" alt="" coords="2313,393,2401,420"/>
+</map>

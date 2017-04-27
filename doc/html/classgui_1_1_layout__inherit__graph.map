@@ -1,0 +1,5 @@
+<map id="gui::Layout" name="gui::Layout">
+<area shape="rect" id="node3" href="$classgui_1_1_h_box_layout.html" title="gui::HBoxLayout" alt="" coords="5,155,123,181"/>
+<area shape="rect" id="node4" href="$classgui_1_1_v_box_layout.html" title="gui::VBoxLayout" alt="" coords="147,155,264,181"/>
+<area shape="rect" id="node2" href="$classgui_1_1_g_u_i_object.html" title="gui::GUIObject" alt="" coords="81,5,188,32"/>
+</map>

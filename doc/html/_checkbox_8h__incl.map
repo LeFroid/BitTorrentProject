@@ -1,0 +1,6 @@
+<map id="src/framework/GUI/Checkbox.h" name="src/framework/GUI/Checkbox.h">
+<area shape="rect" id="node2" href="$_box_8h.html" title="Represents a simple rectangle with an assigned color, size and position. " alt="" coords="84,80,138,107"/>
+<area shape="rect" id="node4" href="$_g_u_i_object_8h.html" title="The base class for all graphical objects. " alt="" coords="186,155,279,181"/>
+<area shape="rect" id="node9" href="$_g_u_i_events_8h.html" title="GUIEvents.h" alt="" coords="367,229,460,256"/>
+<area shape="rect" id="node10" href="$_g_u_i_properties_8h.html" title="GUIProperties.h" alt="" coords="485,229,598,256"/>
+</map>

@@ -1,0 +1,18 @@
+<map id="gui::GUIObject" name="gui::GUIObject">
+<area shape="rect" id="node2" href="$classgui_1_1_box.html" title="gui::Box" alt="" coords="187,56,256,83"/>
+<area shape="rect" id="node7" href="$classgui_1_1_button.html" title="gui::Button" alt="" coords="180,107,263,133"/>
+<area shape="rect" id="node8" href="$classgui_1_1_image.html" title="gui::Image" alt="" coords="180,157,263,184"/>
+<area shape="rect" id="node9" href="$classgui_1_1_label.html" title="gui::Label" alt="" coords="182,208,261,235"/>
+<area shape="rect" id="node10" href="$classgui_1_1_layout.html" title="gui::Layout" alt="" coords="179,259,264,285"/>
+<area shape="rect" id="node13" href="$classgui_1_1_main_screen.html" title="Handles the layout of all objects on the main window, their refresh rate, etc. " alt="" coords="163,309,279,336"/>
+<area shape="rect" id="node14" href="$classgui_1_1_progress_bar.html" title="gui::ProgressBar" alt="" coords="161,360,281,387"/>
+<area shape="rect" id="node15" href="$classgui_1_1_table.html" title="gui::Table" alt="" coords="181,411,262,437"/>
+<area shape="rect" id="node16" href="$classgui_1_1_torrent_table.html" title="Stores TorrentCells, each (potentially) displaying the progress of a torrent file download/upload..." alt="" coords="160,461,283,488"/>
+<area shape="rect" id="node17" href="$classgui_1_1_window.html" title="gui::Window" alt="" coords="175,512,267,539"/>
+<area shape="rect" id="node3" href="$classgui_1_1_checkbox.html" title="gui::Checkbox" alt="" coords="337,5,442,32"/>
+<area shape="rect" id="node4" href="$classgui_1_1_text_box.html" title="gui::TextBox" alt="" coords="342,56,437,83"/>
+<area shape="rect" id="node6" href="$classgui_1_1_torrent_cell.html" title="Displays. " alt="" coords="335,107,444,133"/>
+<area shape="rect" id="node5" href="$classgui_1_1_text_input_box.html" title="gui::TextInputBox" alt="" coords="496,56,619,83"/>
+<area shape="rect" id="node11" href="$classgui_1_1_h_box_layout.html" title="gui::HBoxLayout" alt="" coords="331,233,448,260"/>
+<area shape="rect" id="node12" href="$classgui_1_1_v_box_layout.html" title="gui::VBoxLayout" alt="" coords="331,284,448,311"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="network::Socket" name="network::Socket">
+<area shape="rect" id="node3" href="$classnetwork_1_1_peer.html" title="Represents a single remote entity in the swarm, connected to the local client through a TCP socket..." alt="" coords="5,169,104,196"/>
+<area shape="rect" id="node4" href="$classnetwork_1_1_tracker_client.html" title="Handles communications with a tracker service. " alt="" coords="129,169,279,196"/>
+</map>

@@ -1,0 +1,25 @@
+<map id="src/torrent_protocol/TorrentMgr.cpp" name="src/torrent_protocol/TorrentMgr.cpp">
+<area shape="rect" id="node6" href="$_log_helper_8h.html" title="LogHelper.h" alt="" coords="1215,348,1307,375"/>
+<area shape="rect" id="node15" href="$_torrent_mgr_8h.html" title="TorrentMgr.h" alt="" coords="783,95,879,121"/>
+<area shape="rect" id="node38" href="$_torrent_file_8h.html" title="TorrentFile.h" alt="" coords="1933,266,2027,293"/>
+<area shape="rect" id="node9" href="$_log_8h.html" title="Log.h" alt="" coords="1351,423,1406,449"/>
+<area shape="rect" id="node19" href="$_configuration_8h.html" title="Configuration.h" alt="" coords="1682,177,1790,203"/>
+<area shape="rect" id="node22" href="$_connection_mgr_8h.html" title="ConnectionMgr.h" alt="" coords="674,266,793,293"/>
+<area shape="rect" id="node30" href="$_torrent_state_8h.html" title="TorrentState.h" alt="" coords="697,348,799,375"/>
+<area shape="rect" id="node34" href="$_listener_8h.html" title="Listener.h" alt="" coords="633,177,711,203"/>
+<area shape="rect" id="node35" href="$_peer_8h.html" title="Peer.h" alt="" coords="396,266,455,293"/>
+<area shape="rect" id="node36" href="$_tracker_client_8h.html" title="TrackerClient.h" alt="" coords="463,177,574,203"/>
+<area shape="rect" id="node37" href="$_hash_map_utils_8h.html" title="HashMapUtils.h" alt="" coords="2215,266,2329,293"/>
+<area shape="rect" id="node25" href="$_socket_8h.html" title="Socket.h" alt="" coords="600,348,672,375"/>
+<area shape="rect" id="node28" href="$_mutable_buffer_8h.html" title="MutableBuffer.h" alt="" coords="1112,423,1224,449"/>
+<area shape="rect" id="node32" href="$_piece_mgr_8h.html" title="PieceMgr.h" alt="" coords="717,423,805,449"/>
+<area shape="rect" id="node33" href="$_torrent_fragment_8h.html" title="TorrentFragment.h" alt="" coords="697,497,826,524"/>
+<area shape="rect" id="node39" href="$_ben_dictionary_8h.html" title="BenDictionary.h" alt="" coords="1482,348,1595,375"/>
+<area shape="rect" id="node41" href="$_ben_int_8h.html" title="BenInt.h" alt="" coords="1722,423,1790,449"/>
+<area shape="rect" id="node42" href="$_ben_list_8h.html" title="BenList.h" alt="" coords="1013,423,1088,449"/>
+<area shape="rect" id="node43" href="$_ben_string_8h.html" title="BenString.h" alt="" coords="1814,423,1903,449"/>
+<area shape="rect" id="node44" href="$_s_h_a1_hash_8h.html" title="SHA1Hash.h" alt="" coords="2310,348,2407,375"/>
+<area shape="rect" id="node46" href="$_u_r_l_8h.html" title="URL.h" alt="" coords="1951,348,2009,375"/>
+<area shape="rect" id="node40" href="$_ben_object_8h.html" title="BenObject.h" alt="" coords="1721,497,1815,524"/>
+<area shape="rect" id="node47" href="$_string_helper_8h.html" title="StringHelper.h" alt="" coords="1928,423,2032,449"/>
+</map>

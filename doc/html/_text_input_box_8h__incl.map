@@ -1,0 +1,12 @@
+<map id="src/framework/GUI/TextInputBox.h" name="src/framework/GUI/TextInputBox.h">
+<area shape="rect" id="node2" href="$_event_handler_8h.html" title="Handles all relevant events that the application can receive from the SDL backend. " alt="" coords="118,244,228,271"/>
+<area shape="rect" id="node9" href="$_text_box_8h.html" title="Represents a box with any kind of text within it. " alt="" coords="604,95,686,121"/>
+<area shape="rect" id="node4" href="$_g_u_i_events_8h.html" title="GUIEvents.h" alt="" coords="26,319,120,345"/>
+<area shape="rect" id="node5" href="$_g_u_i_properties_8h.html" title="GUIProperties.h" alt="" coords="415,393,528,420"/>
+<area shape="rect" id="node8" href="$_singleton_8h.html" title="Singleton.h" alt="" coords="226,319,312,345"/>
+<area shape="rect" id="node10" href="$_box_8h.html" title="Represents a simple rectangle with an assigned color, size and position. " alt="" coords="667,169,722,196"/>
+<area shape="rect" id="node15" href="$_font_holder_8h.html" title="FontHolder.h" alt="" coords="548,169,643,196"/>
+<area shape="rect" id="node11" href="$_g_u_i_object_8h.html" title="The base class for all graphical objects. " alt="" coords="380,244,473,271"/>
+<area shape="rect" id="node16" href="$_font_storage_8h.html" title="Stores instances of specific fonts, which can be accessed through this class at any time..." alt="" coords="544,244,647,271"/>
+<area shape="rect" id="node18" href="$_font_8h.html" title="Represents a TTF font that can be used by the renderer to display text. " alt="" coords="739,319,796,345"/>
+</map>

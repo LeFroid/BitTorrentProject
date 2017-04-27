@@ -1,0 +1,6 @@
+<map id="src/client/TorrentCell.h" name="src/client/TorrentCell.h">
+<area shape="rect" id="node3" href="$_box_8h.html" title="Represents a simple rectangle with an assigned color, size and position. " alt="" coords="99,80,154,107"/>
+<area shape="rect" id="node5" href="$_g_u_i_object_8h.html" title="The base class for all graphical objects. " alt="" coords="201,155,295,181"/>
+<area shape="rect" id="node10" href="$_g_u_i_events_8h.html" title="GUIEvents.h" alt="" coords="383,229,476,256"/>
+<area shape="rect" id="node11" href="$_g_u_i_properties_8h.html" title="GUIProperties.h" alt="" coords="501,229,614,256"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="src/framework/GUI/HBoxLayout.cpp" name="src/framework/GUI/HBoxLayout.cpp">
+<area shape="rect" id="node2" href="$_h_box_layout_8h.html" title="HBoxLayout.h" alt="" coords="695,80,798,107"/>
+<area shape="rect" id="node13" href="$_log_helper_8h.html" title="LogHelper.h" alt="" coords="331,80,423,107"/>
+<area shape="rect" id="node22" href="$_object_manager_8h.html" title="Manages the memory and usage of objects derived from the GUIObject base class. " alt="" coords="502,80,626,107"/>
+<area shape="rect" id="node3" href="$_layout_8h.html" title="This is the base class for all geometry handling objects. " alt="" coords="758,155,829,181"/>
+<area shape="rect" id="node4" href="$_g_u_i_object_8h.html" title="The base class for all graphical objects. " alt="" coords="712,229,805,256"/>
+<area shape="rect" id="node9" href="$_g_u_i_events_8h.html" title="GUIEvents.h" alt="" coords="488,304,581,331"/>
+<area shape="rect" id="node10" href="$_g_u_i_properties_8h.html" title="GUIProperties.h" alt="" coords="606,304,719,331"/>
+<area shape="rect" id="node16" href="$_log_8h.html" title="Log.h" alt="" coords="209,155,263,181"/>
+<area shape="rect" id="node24" href="$_singleton_8h.html" title="Singleton.h" alt="" coords="521,155,607,181"/>
+</map>

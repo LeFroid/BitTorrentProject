@@ -1,0 +1,13 @@
+<map id="src/framework/GUI/Button.cpp" name="src/framework/GUI/Button.cpp">
+<area shape="rect" id="node2" href="$_button_8h.html" title="Represents a button that can display text and be clicked, hovered over, etc by the user..." alt="" coords="414,80,482,107"/>
+<area shape="rect" id="node18" href="$_renderer_8h.html" title="Used to render objects, images, etc. to the graphical user interface. " alt="" coords="835,229,920,256"/>
+<area shape="rect" id="node20" href="$_log_helper_8h.html" title="LogHelper.h" alt="" coords="1003,229,1095,256"/>
+<area shape="rect" id="node4" href="$_font_holder_8h.html" title="FontHolder.h" alt="" coords="462,155,557,181"/>
+<area shape="rect" id="node14" href="$_g_u_i_object_8h.html" title="The base class for all graphical objects. " alt="" coords="295,229,388,256"/>
+<area shape="rect" id="node5" href="$_font_storage_8h.html" title="Stores instances of specific fonts, which can be accessed through this class at any time..." alt="" coords="477,229,579,256"/>
+<area shape="rect" id="node9" href="$_font_8h.html" title="Represents a TTF font that can be used by the renderer to display text. " alt="" coords="659,304,717,331"/>
+<area shape="rect" id="node13" href="$_singleton_8h.html" title="Singleton.h" alt="" coords="549,304,635,331"/>
+<area shape="rect" id="node11" href="$_g_u_i_properties_8h.html" title="GUIProperties.h" alt="" coords="583,379,697,405"/>
+<area shape="rect" id="node17" href="$_g_u_i_events_8h.html" title="GUIEvents.h" alt="" coords="144,304,237,331"/>
+<area shape="rect" id="node22" href="$_log_8h.html" title="Log.h" alt="" coords="1170,304,1225,331"/>
+</map>

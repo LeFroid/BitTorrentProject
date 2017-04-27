@@ -96,7 +96,7 @@ namespace gui
         m_buttonAddTorrent->setFontPointSize(18);
         m_buttonAddTorrent->setText("Download");
         m_buttonAddTorrent->registerMouseEvent(MouseEvent::ReleasedLeft, std::bind(&MainScreen::downloadTorrent, this));
-        //m_buttonAddTorrent->setHint("Begin to download the torrent file.");
+        m_buttonAddTorrent->setHint("Begin to download the torrent file.");
 
         // Create download directory widgets
         m_labelDownloadDir = objMgr->createObject<Label>(this, Position(objPos.x + 5, objPos.y + objSize.height / 10),
@@ -117,7 +117,7 @@ namespace gui
         m_buttonChangeDownloadDir->setFontPointSize(18);
         m_buttonChangeDownloadDir->setText("Save");
         m_buttonChangeDownloadDir->registerMouseEvent(MouseEvent::ReleasedLeft, std::bind(&MainScreen::onChangeDownloadDir, this));
-        //m_buttonChangeDownloadDir->setHint("Click to confirm a change to the download directory for torrents.");
+        m_buttonChangeDownloadDir->setHint("Click to confirm a change to the download directory for torrents.");
 
         // Create table
         m_torrentTable = objMgr->createObject<TorrentTable>(this, Position(objPos.x + objSize.width / 4, objPos.y + objSize.height / 8),
