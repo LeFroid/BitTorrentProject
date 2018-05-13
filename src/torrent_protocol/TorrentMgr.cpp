@@ -24,10 +24,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <cstring>
-#include <ctime>
 
 #include <algorithm>
 #include <functional>
+#include <random>
 
 #include "LogHelper.h"
 
@@ -47,12 +47,14 @@ TorrentMgr::TorrentMgr(const std::string &configFile) :
     m_peerListener(m_ioService),
     m_config()
 {
-    srand(time(nullptr));
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> peerIDDist(0, 255);
 
     // Set peer ID
     memcpy(&m_peerID[0], &PeerNameVersion[0], 8);
     for (int i = 8; i < 20; ++i)
-        m_peerID[i] = rand() % 256;
+        m_peerID[i] = static_cast<char>(peerIDDist(gen));
 
     // Load configuration file
     m_config.loadFile(configFile);
