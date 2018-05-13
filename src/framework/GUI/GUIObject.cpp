@@ -47,8 +47,6 @@ namespace gui
         m_isHiding(true),
         m_objectID(0)
     {
-        //if (parent != nullptr)
-        //    m_parent = parent->getObjectID();
     }
     
     GUIObject::GUIObject(GUIObject *parent, Position position, Size size, bool overrideBounds) :
@@ -59,10 +57,7 @@ namespace gui
         m_size(size),
         m_isHiding(true),
         m_objectID(0)
-    {
-        //if (parent != nullptr)
-        //    m_parent = parent->getObjectID();
-        
+    {   
         if (!overrideBounds)
             confirmSizeAndPos();
     }

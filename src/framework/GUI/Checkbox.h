@@ -49,6 +49,9 @@ namespace gui
     public:
         /// Checkbox constructor
         Checkbox(GUIObject *parent, Position position, Size size = { 16, 16 }, Color color = { 255, 255, 255, 255 }, Mode mode = Circle);
+
+        /// Checkbox destructor
+        virtual ~Checkbox() {}
         
         /// Returns the current display mode of the checkbox
         const Mode& getDisplayMode() const;

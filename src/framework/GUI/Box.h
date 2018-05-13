@@ -43,6 +43,9 @@ namespace gui
     public:
         /// Constructs a box with a given parent, position, size and color
         Box(GUIObject *parent, Position position, Size size, Color color);
+
+        /// Box destructor
+        virtual ~Box() {}
         
         /// Returns the color of the box
         const Color& getColor() const;

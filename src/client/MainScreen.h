@@ -46,6 +46,9 @@ namespace gui
         /// Constructs the main screen with a pointer to the window, and the path to the gui theme file
         MainScreen(GUIObject *parent, std::string themeFile);
 
+        /// MainScreen destructor
+        ~MainScreen() {}
+
     public:
         /// Draws the screen onto the window
         void draw() override;

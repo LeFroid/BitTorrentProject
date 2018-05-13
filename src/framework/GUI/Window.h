@@ -55,7 +55,7 @@ namespace gui
         Window(std::string title, int width, int height, bool fullscreen = false);
         
         /// Window destructor
-        ~Window();
+        virtual ~Window();
         
         /// Returns true if a child object has the keyboard's focus, halting keybinding events. False if else
         bool childHasKeyboardFocus();

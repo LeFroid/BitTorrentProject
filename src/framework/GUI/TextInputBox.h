@@ -47,7 +47,7 @@ namespace gui
             Color textColor = { 0, 0, 0, 255 });
         
         /// TextInputBox destructor
-        ~TextInputBox();
+        virtual ~TextInputBox();
 
     protected:        
         /// Called when this has focus and text has been entered by the user

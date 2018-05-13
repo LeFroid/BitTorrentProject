@@ -54,7 +54,7 @@ namespace gui
             FontType fontType = DROID_SANS, int fontPointSize = 24, Color textColor = { 0, 0, 0, 255 });
         
         /// TextBox destructor
-        ~TextBox();
+        virtual ~TextBox();
         
         /// Returns a reference to the text contained within the box
         const std::string& getText() const;

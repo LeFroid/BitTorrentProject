@@ -45,7 +45,7 @@ namespace gui
         TorrentTable(GUIObject *parent, Position position, Size size);
 
         /// Torrent table destructor
-        ~TorrentTable();
+        virtual ~TorrentTable();
 
         /// Adds a new cell to the table, which will report the stats regarding the
         /// given TorrentState pointer

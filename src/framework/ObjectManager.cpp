@@ -30,19 +30,31 @@ namespace gui
 {
     ObjectManager::ObjectManager() :
         m_objectRegistry(),
-        m_objectCounter(0)
+        m_objectCounter(0),
+        m_deleting(false)
     {
+    }
+
+    ObjectManager::~ObjectManager()
+    {
+        m_deleting = true;
     }
     
     void ObjectManager::deleteObject(uint32_t objectID)
     {
+        if (m_deleting)
+            return;
+
         auto it = m_objectRegistry.find(objectID);
         if (it != m_objectRegistry.end())
         {
-            GUIObject *obj = it->second.release();
-            if (obj != nullptr)
-                delete obj;
-            m_objectRegistry.erase(it);
+            GUIObject *obj = it->second.get();
+            if (obj)
+                m_objectRegistry.erase(it);
+            //GUIObject *obj = it->second.release();
+            //if (obj != nullptr)
+            //    delete obj;
+            //m_objectRegistry.erase(it);
         }
     }
     
@@ -60,7 +72,7 @@ namespace gui
         return nullptr;
     }
     
-    GUIObject *ObjectManager::registerObject(std::unique_ptr<GUIObject> &&object)
+    GUIObject *ObjectManager::registerObject(std::shared_ptr<GUIObject> &&object)
     {
         object->m_objectID = m_objectCounter;
         m_objectRegistry[m_objectCounter] = std::move(object);

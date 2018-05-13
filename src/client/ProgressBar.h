@@ -38,6 +38,9 @@ namespace gui
         /// progression (completed) color
         ProgressBar(GUIObject *parent, Position position, Size size, Color backgroundColor, Color progressColor);
 
+        /// ProgressBar destructor
+        ~ProgressBar() {}
+
         /**
          * @brief Updates the ratio of complete-ness of the progress bar
          * @param partComplete A floating-point integer in the range [0.0, 1.0] representing the percent completion

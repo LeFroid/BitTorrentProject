@@ -48,6 +48,9 @@ namespace gui
         /// Table constructor, specifying a parent object, position and size. Defaults to 1 row, 1 column, 5px spacing, 5px for all margins
         Table(GUIObject *parent, Position position, Size size, int numRows = 1, int numCols = 1,
             int spacing = 5, Margins margins = { 5, 5, 5, 5 });
+
+        /// Table destructor
+        virtual ~Table() {}
         
         /// Sets the table structure to contain the given amount of rows and columns
         void setDimensions(int rows, int columns);

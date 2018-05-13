@@ -26,6 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include <memory>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 
@@ -34,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace gui 
 {
-    typedef std::unordered_map< uint32_t, std::unique_ptr<GUIObject> > ObjectRegistry;
+    typedef std::unordered_map< uint32_t, std::shared_ptr<GUIObject> > ObjectRegistry;
     
     /**
      * @class ObjectManager
@@ -50,7 +51,10 @@ namespace gui
     public:
         /// Default constructor
         ObjectManager();
-        
+
+        /// Destructor
+        ~ObjectManager();
+
         /**
          * @brief Creates and registers a new GUIObject derived object
          * @return A new object of the type specified
@@ -58,7 +62,10 @@ namespace gui
         template<class T, typename... Args>
         T* createObject(Args&&... args)
         {
-            T *obj = static_cast<T*>(registerObject(std::unique_ptr<GUIObject>(new T(std::forward<Args>(args)...))));
+            static_assert(std::is_base_of<GUIObject, T>::value, "ObjectManager::createObject - Must pass an object that is derived from GUIObject");
+
+            T *obj = dynamic_cast<T*>(registerObject(std::make_shared<T>(std::forward<Args>(args)...)));
+            //T *obj = static_cast<T*>(registerObject(std::unique_ptr<T>(new T(std::forward<Args>(args)...))));
             if (obj)
             {
                 obj->registerWithParent();
@@ -78,13 +85,16 @@ namespace gui
     
     private:
         /// Informs the object manager that a new object has been created, adding it to the registry. May only be called once per object
-        GUIObject *registerObject(std::unique_ptr<GUIObject> &&object);
+        GUIObject *registerObject(std::shared_ptr<GUIObject> &&object);
 
         /// Contains and essentially manages pointers to objects, storing them by their unique ID
         ObjectRegistry m_objectRegistry;
         
         /// The counter for assigning object IDs to new objects
         uint32_t m_objectCounter;
+
+        /// True if ObjectManager began to destroy its children, false if else
+        bool m_deleting;
     };
 }
 

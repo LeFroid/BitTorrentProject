@@ -54,7 +54,7 @@ namespace gui
         Image(GUIObject *parent, Position position = Position(), Size size = Size(), std::string imagePath = std::string(), bool overrideBounds = false);
         
         /// Image destructor, deallocates all used resources
-        ~Image();
+        virtual ~Image();
         
         /// Attempts to load the image into a texture, returning true on success.
         bool load();

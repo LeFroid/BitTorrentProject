@@ -44,6 +44,9 @@ namespace gui
         
         /// HBoxLayout constructor, specifying a parent object, position of the layout object, a size and optional param for spacing
         HBoxLayout(GUIObject *parent, Position position, Size size, int spacing = 5);
+
+        /// HBoxLayout destructor
+        virtual ~HBoxLayout() {}
         
     public:
         /// Adds a child object to the horizontal box layout

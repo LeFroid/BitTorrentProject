@@ -69,6 +69,9 @@ namespace gui
         
         /// Layout constructor, specifying a parent object, position of the layout object, a size and optional param for spacing
         Layout(GUIObject *parent, Position position, Size size, int spacing = 5);
+
+        /// Layout destructor
+        virtual ~Layout() {}
         
         /// Returns a pointer to the GUIObject at a specific index in the layout. If there is no object at that index, returns nullptr
         GUIObject *getItemAt(int index);

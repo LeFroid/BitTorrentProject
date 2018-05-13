@@ -60,7 +60,7 @@ namespace gui
             FontType fontType = DROID_SANS, int fontPointSize = 24, std::string text = std::string());
         
         /// Button destructor. Deallocates any resources that were used up
-        ~Button();
+        virtual ~Button();
                 
         /// Returns the color of the button
         const Color& getColor() const;

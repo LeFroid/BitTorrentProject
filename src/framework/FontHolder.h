@@ -42,6 +42,9 @@ namespace gui
         /// storage system given a font type and a font point size
         FontHolder(FontType fontType = DROID_SANS, int fontPointSize = 18);
 
+        /// FontHolder destructor
+        virtual ~FontHolder() {}
+
         /// Returns the font currently used by the holder
         Font *getFont();
 

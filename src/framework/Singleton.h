@@ -33,6 +33,8 @@ template <class T>
 class Singleton
 {
 public:
+    virtual ~Singleton() {}
+
     /// Returns a pointer to an instance of class T
     static T *getInstance()
     {

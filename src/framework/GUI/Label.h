@@ -45,7 +45,7 @@ namespace gui
             int fontPointSize = 24, FontType fontType = DROID_SANS);
         
         /// Label destructor
-        ~Label();
+        virtual ~Label();
         
         /// Returns the current text contained in the label object
         const std::string &getText() const;

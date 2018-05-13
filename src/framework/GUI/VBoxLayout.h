@@ -44,6 +44,9 @@ namespace gui
         
         /// VBoxLayout constructor, specifying a parent object, position of the layout object, a size and optional param for spacing
         VBoxLayout(GUIObject *parent, Position position, Size size, int spacing = 5);
+
+        /// VBoxLayout destructor
+        virtual ~VBoxLayout() {}
         
     public:
         /// Adds a child object to the horizontal box layout

@@ -49,6 +49,9 @@ namespace gui
         /// TorrentCell constructor - input is parent (table), position, size and background color
         TorrentCell(GUIObject *parent, Position position, Size size, Color color);
 
+        /// TorrentCell destructor
+        ~TorrentCell() {}
+
         /// Assigns the given torrent state to the cell - information regarding the torrent will be displayed
         /// with the various child objects belonging to this cell
         void assignTorrentState(std::shared_ptr<TorrentState> state);

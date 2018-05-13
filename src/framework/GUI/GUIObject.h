@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <functional>
 #include <map>
-//#include <set>
+#include <string>
 #include <vector>
 #include <SDL.h>
 
@@ -234,7 +234,7 @@ namespace gui
         Size m_hintBoxSize;
 
         /// The text (if any) that is displayed on an object's hint activation via mouse hover
-        std::string m_hintText;
+        std::string m_hintText {};
 
         /// True if currently showing hint box, false if not
         bool m_isShowingHint;
